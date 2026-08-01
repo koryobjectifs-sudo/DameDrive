@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LivrExpress - Livraison Rapide à Dakar</title>
+    <!-- Google Fonts: Inter & Outfit for modern organic tech feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        organic: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            700: '#15803d',
+                            900: '#14532d',
+                            950: '#052e16',
+                        },
+                        tech: {
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-tech-950 text-organic-50 antialiased selection:bg-organic-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Decorative Organic Blob Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="blob organic-blob-1 absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
+        <div class="blob organic-blob-2 absolute top-1/3 -left-40 w-96 h-96 rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
+        <div class="blob organic-blob-3 absolute -bottom-40 right-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300 border-b border-transparent" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="#" class="font-display font-bold text-2xl tracking-tight text-white flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-organic-500 to-organic-700 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        LivrExpress
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-300 hover:text-white transition-colors duration-200">Avantages</a>
+                    <a href="#how-it-works" class="text-gray-300 hover:text-white transition-colors duration-200">Comment ça marche</a>
+                    <a href="#contact" class="btn-primary">Demander un devis</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-badge text-organic-500 text-sm font-medium mb-8 animate-fade-in-up">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-organic-500 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-organic-500"></span>
+                </span>
+                Opérationnel à Dakar
+            </div>
+            
+            <h1 class="font-display text-5xl md:text-7xl font-bold tracking-tight mb-8 animate-fade-in-up animation-delay-100">
+                La livraison rapide, <br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-organic-400 to-organic-600">naturellement efficace.</span>
+            </h1>
+            
+            <p class="mt-4 text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 animate-fade-in-up animation-delay-200 font-light">
+                LivrExpress est l'entreprise de livraison rapide à Dakar qui combine technologie de pointe et service d'excellence.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-300">
+                <a href="#contact" class="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2">
+                    Demander un devis
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+                <a href="#features" class="btn-secondary text-lg px-8 py-4">Découvrir nos services</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="relative z-10 py-24 bg-tech-900/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Pourquoi choisir LivrExpress ?</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">L'alliance parfaite entre l'innovation technologique et la fiabilité organique.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-2xl reveal hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-14 h-14 rounded-xl bg-organic-900/50 flex items-center justify-center mb-6 border border-organic-700/50 text-organic-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold mb-3 text-white">Livraison Rapide</h3>
+                    <p class="text-gray-400 leading-relaxed">Vos colis traversent Dakar à la vitesse de l'éclair grâce à notre réseau optimisé et notre flotte réactive.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-2xl reveal delay-100 hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-14 h-14 rounded-xl bg-organic-900/50 flex items-center justify-center mb-6 border border-organic-700/50 text-organic-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold mb-3 text-white">Service Professionnel</h3>
+                    <p class="text-gray-400 leading-relaxed">Des livreurs formés, un soin minutieux de vos paquets et un support client dédié pour une expérience sans faille.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-2xl reveal delay-200 hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-14 h-14 rounded-xl bg-organic-900/50 flex items-center justify-center mb-6 border border-organic-700/50 text-organic-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="font-display text-xl font-bold mb-3 text-white">Disponible 24/7</h3>
+                    <p class="text-gray-400 leading-relaxed">Le monde ne s'arrête jamais, nous non plus. Notre service est opérationnel jour et nuit pour répondre à vos urgences.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="relative z-10 py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Notre Processus</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">Trois étapes simples pour une livraison réussie.</p>
+            </div>
+            
+            <div class="relative">
+                <!-- Line connecting steps (desktop only) -->
+                <div class="hidden md:block absolute top-10 left-[16.66%] right-[16.66%] h-0.5 bg-gradient-to-r from-transparent via-organic-500/50 to-transparent z-0"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
+                    <!-- Step 1 -->
+                    <div class="text-center reveal">
+                        <div class="w-20 h-20 mx-auto rounded-full bg-tech-950 border border-organic-500 flex items-center justify-center text-2xl font-bold text-organic-400 mb-6 relative shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                            1
+                            <div class="absolute inset-0 rounded-full border border-organic-500 animate-ping opacity-20"></div>
+                        </div>
+                        <h3 class="font-display text-xl font-bold mb-2 text-white">Demande</h3>
+                        <p class="text-gray-400">Remplissez le formulaire de devis avec les détails de votre livraison.</p>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center reveal delay-100">
+                        <div class="w-20 h-20 mx-auto rounded-full bg-tech-950 border border-organic-500 flex items-center justify-center text-2xl font-bold text-organic-400 mb-6 relative shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                            2
+                        </div>
+                        <h3 class="font-display text-xl font-bold mb-2 text-white">Collecte</h3>
+                        <p class="text-gray-400">Notre livreur professionnel récupère votre colis à l'adresse indiquée.</p>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center reveal delay-200">
+                        <div class="w-20 h-20 mx-auto rounded-full bg-tech-950 border border-organic-500 flex items-center justify-center text-2xl font-bold text-organic-400 mb-6 relative shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                            3
+                        </div>
+                        <h3 class="font-display text-xl font-bold mb-2 text-white">Livraison</h3>
+                        <p class="text-gray-400">Votre colis est livré rapidement et en toute sécurité à destination.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / Contact Section -->
+    <section id="contact" class="relative z-10 py-24 bg-tech-900/50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-card rounded-3xl p-8 md:p-12 border border-organic-800/50 reveal">
+                <div class="text-center mb-10">
+                    <h2 class="font-display text-3xl md:text-4xl font-bold mb-4 text-white">Prêt à expédier ?</h2>
+                    <p class="text-gray-400 text-lg">Demandez un devis dès maintenant et découvrez l'expérience LivrExpress.</p>
+                </div>
+                
+                <form id="quote-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-400 mb-2">Nom complet</label>
+                            <input type="text" id="name" required class="w-full bg-tech-950/80 border border-organic-900/80 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-organic-500 focus:border-transparent transition-all duration-300 placeholder-gray-600" placeholder="Jean Dupont">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-400 mb-2">Numéro de téléphone</label>
+                            <input type="tel" id="phone" required class="w-full bg-tech-950/80 border border-organic-900/80 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-organic-500 focus:border-transparent transition-all duration-300 placeholder-gray-600" placeholder="+221 77 XXX XX XX">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="details" class="block text-sm font-medium text-gray-400 mb-2">Détails de la livraison (Adresses, type de colis)</label>
+                        <textarea id="details" rows="4" required class="w-full bg-tech-950/80 border border-organic-900/80 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-organic-500 focus:border-transparent transition-all duration-300 placeholder-gray-600" placeholder="De Point E à Almadies, petit colis fragile..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn-primary py-4 text-lg font-semibold flex justify-center items-center gap-2 group">
+                        Demander mon devis
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                    
+                    <p id="form-success" class="text-organic-400 text-center mt-4 hidden bg-organic-900/20 py-3 rounded-lg border border-organic-800">
+                        ✓ Votre demande a été envoyée avec succès ! Nous vous contacterons sous peu.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-white/5 bg-tech-950 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <a href="#" class="font-display font-bold text-2xl tracking-tight text-white flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-md bg-gradient-to-br from-organic-500 to-organic-700 flex items-center justify-center shadow-lg shadow-organic-500/20">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        LivrExpress
+                    </a>
+                    <p class="text-gray-500 text-sm max-w-sm leading-relaxed">
+                        La solution de livraison rapide à Dakar qui respecte vos délais et vos exigences. Tech Organique, pour une logistique naturelle.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Liens Rapides</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#features" class="hover:text-organic-400 transition-colors">Avantages</a></li>
+                        <li><a href="#how-it-works" class="hover:text-organic-400 transition-colors">Comment ça marche</a></li>
+                        <li><a href="#contact" class="hover:text-organic-400 transition-colors">Demander un devis</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-organic-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Dakar, Sénégal
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-organic-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            +221 77 000 00 00
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-organic-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            contact@livrexpress.sn
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-white/5 text-center text-sm text-gray-600">
+                &copy; 2026 LivrExpress. Tous droits réservés.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
