@@ -1,35 +1,26 @@
 import React from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import TrustSection from './components/TrustSection';
-import Services from './components/Services';
-import WhyChooseUs from './components/WhyChooseUs';
-import HowItWorks from './components/HowItWorks';
-import About from './components/About';
-import Testimonials from './components/Testimonials';
-import Pricing from './components/Pricing';
-import Booking from './components/Booking';
-import FAQ from './components/FAQ';
-import Footer from './components/Footer';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import AdminLogin from './components/AdminLogin';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="min-h-screen bg-background font-sans text-slate-900 selection:bg-primary selection:text-white">
-      <Navbar />
-      <main>
-        <Hero />
-        <TrustSection />
-        <Services />
-        <WhyChooseUs />
-        <HowItWorks />
-        <About />
-        <Testimonials />
-        <Pricing />
-        <Booking />
-        <FAQ />
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<AdminLogin />} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </Router>
   );
 }
 
