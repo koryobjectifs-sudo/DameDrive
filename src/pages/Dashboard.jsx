@@ -10,6 +10,12 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Dashboard');
+  
+  // Filters State
+  const [filterPackage, setFilterPackage] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const navigate = useNavigate();
 
   const fetchBookings = async () => {
@@ -167,13 +173,80 @@ const Dashboard = () => {
   // --- Render Components ---
 
   const renderBookingsTable = (limit = null) => {
-    const displayBookings = limit ? bookings.slice(0, limit) : bookings;
+    let filteredBookings = bookings.filter(b => {
+      const matchPackage = filterPackage === 'All' || b.package === filterPackage;
+      const matchStatus = filterStatus === 'All' || b.status === filterStatus;
+      const searchLower = searchQuery.toLowerCase();
+      const matchSearch = !searchQuery || 
+                          b.name.toLowerCase().includes(searchLower) || 
+                          (b.email && b.email.toLowerCase().includes(searchLower)) ||
+                          (b.phone && b.phone.includes(searchLower));
+      return matchPackage && matchStatus && matchSearch;
+    });
+
+    const displayBookings = limit ? filteredBookings.slice(0, limit) : filteredBookings;
     
+    // Get unique packages for dropdown
+    const uniquePackages = [...new Set(bookings.map(b => b.package).filter(Boolean))];
+
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-800">{limit ? "Recent Bookings" : "All Bookings"}</h3>
+        <div className="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h3 className="text-lg font-bold text-slate-800 flex items-center">
+            {limit ? "Recent Bookings" : "All Bookings"}
+            {!limit && <span className="ml-3 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-xs font-medium">{filteredBookings.length} data</span>}
+          </h3>
         </div>
+
+        {!limit && (
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Package Type</label>
+              <select 
+                value={filterPackage} 
+                onChange={(e) => setFilterPackage(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+              >
+                <option value="All">All Packages</option>
+                {uniquePackages.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Redeem Status</label>
+              <select 
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+              >
+                <option value="All">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="contacted">Completed (Contacted)</option>
+              </select>
+            </div>
+            <div className="flex-[2] min-w-[250px]">
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name, email, or phone..." 
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => { setFilterPackage('All'); setFilterStatus('All'); setSearchQuery(''); }}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50/50">
