@@ -15,6 +15,8 @@ const Dashboard = () => {
   const [filterPackage, setFilterPackage] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterTimeframe, setFilterTimeframe] = useState('All Time');
+  const [filterAggregation, setFilterAggregation] = useState('Daily');
 
   const navigate = useNavigate();
 
@@ -76,6 +78,7 @@ const Dashboard = () => {
 
   // --- Filtering Logic ---
   const filteredBookings = bookings.filter(b => {
+    // 1. Text & Dropdown Filters
     const matchPackage = filterPackage === 'All' || b.package === filterPackage;
     const matchStatus = filterStatus === 'All' || b.status === filterStatus;
     const searchLower = searchQuery.toLowerCase();
@@ -83,7 +86,29 @@ const Dashboard = () => {
                         b.name.toLowerCase().includes(searchLower) || 
                         (b.email && b.email.toLowerCase().includes(searchLower)) ||
                         (b.phone && b.phone.includes(searchLower));
-    return matchPackage && matchStatus && matchSearch;
+                        
+    // 2. Date Filtering
+    let matchDate = true;
+    if (filterTimeframe !== 'All Time') {
+      const bDate = new Date(b.created_at);
+      const now = new Date();
+      
+      if (filterTimeframe === 'Today') {
+        matchDate = bDate.toDateString() === now.toDateString();
+      } else if (filterTimeframe === 'Last 7 Days') {
+        const weekAgo = new Date(now.setDate(now.getDate() - 7));
+        matchDate = bDate >= weekAgo;
+      } else if (filterTimeframe === 'Last 30 Days') {
+        const monthAgo = new Date(now.setDate(now.getDate() - 30));
+        matchDate = bDate >= monthAgo;
+      } else if (filterTimeframe === 'This Month') {
+        matchDate = bDate.getMonth() === now.getMonth() && bDate.getFullYear() === now.getFullYear();
+      } else if (filterTimeframe === 'This Year') {
+        matchDate = bDate.getFullYear() === now.getFullYear();
+      }
+    }
+    
+    return matchPackage && matchStatus && matchSearch && matchDate;
   });
 
   const uniquePackages = [...new Set(bookings.map(b => b.package).filter(Boolean))];
@@ -99,29 +124,41 @@ const Dashboard = () => {
   }, 0);
 
   const getChartData = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const data = [
-      { name: 'Mon', current: 0 },
-      { name: 'Tue', current: 0 },
-      { name: 'Wed', current: 0 },
-      { name: 'Thu', current: 0 },
-      { name: 'Fri', current: 0 },
-      { name: 'Sat', current: 0 },
-      { name: 'Sun', current: 0 },
-    ];
+    const dataMap = {};
     
+    // Grouping logic
     filteredBookings.forEach(b => {
       const date = new Date(b.created_at);
-      const dayName = days[date.getDay()];
       const amount = parseFloat((b.total_amount || '').replace('$', '')) || 0;
       
-      const dayIndex = data.findIndex(d => d.name === dayName);
-      if (dayIndex !== -1) {
-        data[dayIndex].current += amount;
+      let key = '';
+      if (filterAggregation === 'Daily') {
+        // e.g. "Mon", "Tue" (or Date string if we want exact dates)
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        key = days[date.getDay()];
+      } else if (filterAggregation === 'Weekly') {
+        // Group by Week of Year (simplified)
+        const startOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - startOfYear) / 86400000;
+        const weekNum = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+        key = `Week ${weekNum}`;
+      } else if (filterAggregation === 'Monthly') {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        key = months[date.getMonth()];
       }
+
+      if (!dataMap[key]) dataMap[key] = 0;
+      dataMap[key] += amount;
     });
+
+    // Formatting based on Aggregation to ensure sensible empty defaults
+    if (filterAggregation === 'Daily' && Object.keys(dataMap).length === 0) {
+       return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => ({ name: day, current: 0 }));
+    } else if (filterAggregation === 'Monthly' && Object.keys(dataMap).length === 0) {
+       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(m => ({ name: m, current: 0 })); // Sample
+    }
     
-    return data;
+    return Object.keys(dataMap).map(key => ({ name: key, current: dataMap[key] }));
   };
   const chartData = getChartData();
 
@@ -179,50 +216,87 @@ const Dashboard = () => {
   // --- Render Components ---
 
   const renderFilterBar = () => (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6 flex flex-wrap items-end gap-4">
-      <div className="flex-1 min-w-[200px]">
-        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Package Type</label>
-        <select 
-          value={filterPackage} 
-          onChange={(e) => setFilterPackage(e.target.value)}
-          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-        >
-          <option value="All">All Packages</option>
-          {uniquePackages.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
-        </select>
-      </div>
-      <div className="flex-1 min-w-[150px]">
-        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Redeem Status</label>
-        <select 
-          value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-        >
-          <option value="All">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="contacted">Completed</option>
-        </select>
-      </div>
-      <div className="flex-[2] min-w-[250px]">
-        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Search</label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email, or phone..." 
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-          />
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Date Range</label>
+          <select 
+            value={filterTimeframe} 
+            onChange={(e) => setFilterTimeframe(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          >
+            <option value="All Time">All Time</option>
+            <option value="Today">Today</option>
+            <option value="Last 7 Days">Last 7 Days</option>
+            <option value="Last 30 Days">Last 30 Days</option>
+            <option value="This Month">This Month</option>
+            <option value="This Year">This Year</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Package Type</label>
+          <select 
+            value={filterPackage} 
+            onChange={(e) => setFilterPackage(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          >
+            <option value="All">All Packages</option>
+            {uniquePackages.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Redeem Status</label>
+          <select 
+            value={filterStatus} 
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          >
+            <option value="All">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="contacted">Completed</option>
+          </select>
+        </div>
+        
+        <div className="lg:col-span-2">
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Search</label>
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, email, or phone..." 
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+            <button 
+              onClick={() => { setFilterPackage('All'); setFilterStatus('All'); setSearchQuery(''); setFilterTimeframe('All Time'); }}
+              className="px-5 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm shrink-0"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={() => { setFilterPackage('All'); setFilterStatus('All'); setSearchQuery(''); }}
-          className="px-6 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
-        >
-          Reset Filters
-        </button>
+      
+      {/* Aggregation Control (Only shown visually if relevant, but exists globally) */}
+      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-xs text-slate-500 font-medium">Customize Chart View:</span>
+        <div className="flex bg-slate-100 p-1 rounded-lg">
+          {['Daily', 'Weekly', 'Monthly'].map(agg => (
+            <button
+              key={agg}
+              onClick={() => setFilterAggregation(agg)}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${filterAggregation === agg ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              {agg}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
