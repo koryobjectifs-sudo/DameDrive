@@ -696,11 +696,11 @@ const Dashboard = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Admin Email</label>
-                  <input type="email" disabled value="koryobjectifs@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed" />
+                  <input type="email" disabled value="suporttest474@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Notification Email</label>
-                  <input type="email" defaultValue="koryobjectifs@gmail.com" className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none" />
+                  <input type="email" defaultValue="suporttest474@gmail.com" className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none" />
                   <p className="text-xs text-slate-500 mt-1">This is where Web3Forms sends new booking alerts.</p>
                 </div>
                 <button className="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors">
