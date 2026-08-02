@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
 
@@ -11,7 +11,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Dashboard');
   
-  // Filters State
+  // Global Filters State
   const [filterPackage, setFilterPackage] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +61,6 @@ const Dashboard = () => {
 
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'pending' ? 'contacted' : 'pending';
-    // Optimistic update
     setBookings(bookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
     
     const { error } = await supabase
@@ -71,35 +70,47 @@ const Dashboard = () => {
       
     if (error) {
       console.error('Status update failed', error);
-      fetchBookings(); // revert on failure
+      fetchBookings(); 
     }
   };
 
-  // --- Data Computation ---
+  // --- Filtering Logic ---
+  const filteredBookings = bookings.filter(b => {
+    const matchPackage = filterPackage === 'All' || b.package === filterPackage;
+    const matchStatus = filterStatus === 'All' || b.status === filterStatus;
+    const searchLower = searchQuery.toLowerCase();
+    const matchSearch = !searchQuery || 
+                        b.name.toLowerCase().includes(searchLower) || 
+                        (b.email && b.email.toLowerCase().includes(searchLower)) ||
+                        (b.phone && b.phone.includes(searchLower));
+    return matchPackage && matchStatus && matchSearch;
+  });
 
-  const totalBookings = bookings.length;
-  const contacted = bookings.filter(b => b.status === 'contacted').length;
+  const uniquePackages = [...new Set(bookings.map(b => b.package).filter(Boolean))];
+
+  // --- Data Computation (Based on filteredBookings) ---
+  const totalBookings = filteredBookings.length;
+  const contacted = filteredBookings.filter(b => b.status === 'contacted').length;
   const pending = totalBookings - contacted;
   
-  const totalEarnings = bookings.reduce((sum, b) => {
+  const totalEarnings = filteredBookings.reduce((sum, b) => {
     const amount = parseFloat((b.total_amount || '').replace('$', ''));
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
 
-  // Real Chart Data Aggregation
   const getChartData = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const data = [
-      { name: 'Mon', current: 0, previous: 140 },
-      { name: 'Tue', current: 0, previous: 221 },
-      { name: 'Wed', current: 0, previous: 229 },
-      { name: 'Thu', current: 0, previous: 200 },
-      { name: 'Fri', current: 0, previous: 218 },
-      { name: 'Sat', current: 0, previous: 250 },
-      { name: 'Sun', current: 0, previous: 210 },
+      { name: 'Mon', current: 0 },
+      { name: 'Tue', current: 0 },
+      { name: 'Wed', current: 0 },
+      { name: 'Thu', current: 0 },
+      { name: 'Fri', current: 0 },
+      { name: 'Sat', current: 0 },
+      { name: 'Sun', current: 0 },
     ];
     
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const date = new Date(b.created_at);
       const dayName = days[date.getDay()];
       const amount = parseFloat((b.total_amount || '').replace('$', '')) || 0;
@@ -112,18 +123,16 @@ const Dashboard = () => {
     
     return data;
   };
-
   const chartData = getChartData();
 
   const pieData = [
-    { name: 'Contacted', value: contacted || 1 }, // Fallback to 1 to show chart
+    { name: 'Contacted', value: contacted || 1 }, 
     { name: 'Pending', value: pending || 1 },
   ];
 
-  // Derived Unique Students
   const getUniqueStudents = () => {
     const studentsMap = {};
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const key = b.email;
       if (!studentsMap[key]) {
         studentsMap[key] = {
@@ -141,7 +150,7 @@ const Dashboard = () => {
       
       if (new Date(b.created_at) > new Date(studentsMap[key].last_booking)) {
         studentsMap[key].last_booking = b.created_at;
-        studentsMap[key].name = b.name; // Use most recent name
+        studentsMap[key].name = b.name; 
         studentsMap[key].phone = b.phone;
       }
     });
@@ -149,17 +158,9 @@ const Dashboard = () => {
   };
   const uniqueStudents = getUniqueStudents();
 
-  // Mock Vehicles
-  const mockVehicles = [
-    { id: 1, make: 'Toyota', model: 'Camry', year: '2023', type: 'Automatic', status: 'Active', mileage: '12,450 km', next_service: '15,000 km' },
-    { id: 2, make: 'Honda', model: 'Civic', year: '2022', type: 'Manual', status: 'Active', mileage: '28,100 km', next_service: '30,000 km' },
-    { id: 3, make: 'Toyota', model: 'Corolla', year: '2024', type: 'Automatic', status: 'Maintenance', mileage: '5,200 km', next_service: '10,000 km' },
-  ];
-
-  // Package Earnings for Bar Chart
   const getPackageEarnings = () => {
     const pkgMap = {};
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const pkg = b.package || 'Other';
       const amount = parseFloat((b.total_amount || '').replace('$', '')) || 0;
       if (!pkgMap[pkg]) pkgMap[pkg] = 0;
@@ -169,26 +170,66 @@ const Dashboard = () => {
   };
   const packageEarnings = getPackageEarnings();
 
+  const mockVehicles = [
+    { id: 1, make: 'Toyota', model: 'Camry', year: '2023', type: 'Automatic', status: 'Active', mileage: '12,450 km', next_service: '15,000 km' },
+    { id: 2, make: 'Honda', model: 'Civic', year: '2022', type: 'Manual', status: 'Active', mileage: '28,100 km', next_service: '30,000 km' },
+    { id: 3, make: 'Toyota', model: 'Corolla', year: '2024', type: 'Automatic', status: 'Maintenance', mileage: '5,200 km', next_service: '10,000 km' },
+  ];
 
   // --- Render Components ---
 
-  const renderBookingsTable = (limit = null) => {
-    let filteredBookings = bookings.filter(b => {
-      const matchPackage = filterPackage === 'All' || b.package === filterPackage;
-      const matchStatus = filterStatus === 'All' || b.status === filterStatus;
-      const searchLower = searchQuery.toLowerCase();
-      const matchSearch = !searchQuery || 
-                          b.name.toLowerCase().includes(searchLower) || 
-                          (b.email && b.email.toLowerCase().includes(searchLower)) ||
-                          (b.phone && b.phone.includes(searchLower));
-      return matchPackage && matchStatus && matchSearch;
-    });
+  const renderFilterBar = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6 flex flex-wrap items-end gap-4">
+      <div className="flex-1 min-w-[200px]">
+        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Package Type</label>
+        <select 
+          value={filterPackage} 
+          onChange={(e) => setFilterPackage(e.target.value)}
+          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+        >
+          <option value="All">All Packages</option>
+          {uniquePackages.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
+        </select>
+      </div>
+      <div className="flex-1 min-w-[150px]">
+        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Redeem Status</label>
+        <select 
+          value={filterStatus} 
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+        >
+          <option value="All">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="contacted">Completed</option>
+        </select>
+      </div>
+      <div className="flex-[2] min-w-[250px]">
+        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Search</label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, or phone..." 
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={() => { setFilterPackage('All'); setFilterStatus('All'); setSearchQuery(''); }}
+          className="px-6 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+  );
 
+  const renderBookingsTable = (limit = null) => {
     const displayBookings = limit ? filteredBookings.slice(0, limit) : filteredBookings;
     
-    // Get unique packages for dropdown
-    const uniquePackages = [...new Set(bookings.map(b => b.package).filter(Boolean))];
-
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -197,56 +238,6 @@ const Dashboard = () => {
             {!limit && <span className="ml-3 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-xs font-medium">{filteredBookings.length} data</span>}
           </h3>
         </div>
-
-        {!limit && (
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Package Type</label>
-              <select 
-                value={filterPackage} 
-                onChange={(e) => setFilterPackage(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-              >
-                <option value="All">All Packages</option>
-                {uniquePackages.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
-              </select>
-            </div>
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Redeem Status</label>
-              <select 
-                value={filterStatus} 
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-              >
-                <option value="All">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="contacted">Completed (Contacted)</option>
-              </select>
-            </div>
-            <div className="flex-[2] min-w-[250px]">
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name, email, or phone..." 
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-primary"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => { setFilterPackage('All'); setFilterStatus('All'); setSearchQuery(''); }}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50/50">
@@ -261,7 +252,7 @@ const Dashboard = () => {
               {loading && displayBookings.length === 0 ? (
                 <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">Loading bookings...</td></tr>
               ) : displayBookings.length === 0 ? (
-                <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No booking requests yet!</td></tr>
+                <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No booking requests match your filters.</td></tr>
               ) : (
                 displayBookings.map((booking) => (
                   <tr key={booking.id} className="hover:bg-slate-50/80 transition-colors group">
@@ -306,7 +297,7 @@ const Dashboard = () => {
                             : 'bg-amber-50 text-amber-700'
                         }`}
                       >
-                        {booking.status === 'contacted' ? 'Completed' : 'Ongoing'}
+                        {booking.status === 'contacted' ? 'Completed' : 'Pending'}
                       </span>
                       <button
                         onClick={() => toggleStatus(booking.id, booking.status)}
@@ -327,6 +318,7 @@ const Dashboard = () => {
 
   const renderDashboard = () => (
     <div className="max-w-7xl mx-auto space-y-6">
+      {renderFilterBar()}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
           <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mr-4">
@@ -334,7 +326,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-3xl font-bold text-slate-800">{totalBookings}</p>
-            <p className="text-sm text-slate-500 font-medium mt-1">Total Bookings</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Filtered Bookings</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
@@ -343,7 +335,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-3xl font-bold text-slate-800">${totalEarnings}</p>
-            <p className="text-sm text-slate-500 font-medium mt-1">Total Earnings</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Filtered Earnings</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
@@ -373,13 +365,19 @@ const Dashboard = () => {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, ""]} />
-                <Line type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
-              </LineChart>
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={10} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Earnings"]} />
+                <Area type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} fillOpacity={1} fill="url(#colorCurrent)" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -408,136 +406,30 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderStudents = () => (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800">Student Directory ({uniqueStudents.length})</h3>
-          <p className="text-sm text-slate-500 mt-1">Unique clients automatically derived from booking history.</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact Info</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Bookings</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Spent</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {uniqueStudents.map((s, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/80">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                        {s.name.charAt(0)}
-                      </div>
-                      <div className="ml-4 font-medium text-slate-900">{s.name}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-600 flex items-center"><Mail size={14} className="mr-2 text-slate-400"/> {s.email}</div>
-                    <div className="text-sm text-slate-600 flex items-center mt-1"><Phone size={14} className="mr-2 text-slate-400"/> {s.phone || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-900 font-medium">
-                    {s.total_bookings}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-sm font-semibold">
-                      ${s.total_spent}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderVehicles = () => (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-end mb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Fleet Management</h2>
-          <p className="text-slate-500 text-sm mt-1">Manage your active instruction vehicles.</p>
-        </div>
-        <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          + Add Vehicle
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockVehicles.map(v => (
-          <div key={v.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 mr-4">
-                  <Car size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">{v.year} {v.make} {v.model}</h3>
-                  <p className="text-xs text-slate-500">{v.type}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs font-bold ${v.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                {v.status}
-              </span>
-            </div>
-            <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Current Mileage:</span>
-                <span className="font-medium text-slate-900">{v.mileage}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Next Service:</span>
-                <span className="font-medium text-slate-900">{v.next_service}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   const renderEarnings = () => (
     <div className="max-w-7xl mx-auto space-y-6">
+      {renderFilterBar()}
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Financial Overview</h2>
-        <p className="text-3xl font-bold text-emerald-600 mb-8">${totalEarnings} <span className="text-sm font-medium text-slate-500">Total Revenue</span></p>
+        <p className="text-3xl font-bold text-emerald-600 mb-8">${totalEarnings} <span className="text-sm font-medium text-slate-500">Filtered Revenue</span></p>
         
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={packageEarnings}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorEarningsFull" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
-              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Revenue"]} />
-              <Bar dataKey="earnings" fill="#10b981" radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} />
+              <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Revenue"]} />
+              <Area type="monotone" dataKey="current" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorEarningsFull)" activeDot={{r: 8}} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderSettings = () => (
-    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Admin Email</label>
-          <input type="email" disabled value="koryobjectifs@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Notification Email</label>
-          <input type="email" defaultValue="koryobjectifs@gmail.com" className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none" />
-          <p className="text-xs text-slate-500 mt-1">This is where Web3Forms sends new booking alerts.</p>
-        </div>
-        <button className="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors">
-          Save Changes
-        </button>
       </div>
     </div>
   );
@@ -604,29 +496,13 @@ const Dashboard = () => {
           <div className="flex items-center">
             <h2 className="text-xl font-semibold text-slate-800 hidden sm:block">{activeTab}</h2>
           </div>
-          
           <div className="flex items-center space-x-6">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search anything..." 
-                className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-64"
-              />
-            </div>
-            
-            <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
-              <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            
-            <div className="flex items-center space-x-3 pl-6 border-l border-slate-200">
+            <div className="flex items-center space-x-3 pl-6">
               <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
                 A
               </div>
               <div className="hidden sm:block text-sm">
                 <p className="font-medium text-slate-700 leading-none">Admin</p>
-                <p className="text-slate-500 text-xs mt-1">Super Admin</p>
               </div>
               <button onClick={handleSignOut} className="text-slate-400 hover:text-red-500 ml-2">
                 <LogOut size={18} />
@@ -640,13 +516,125 @@ const Dashboard = () => {
           {activeTab === 'Dashboard' && renderDashboard()}
           {activeTab === 'Bookings' && (
              <div className="max-w-7xl mx-auto space-y-6">
+               {renderFilterBar()}
                {renderBookingsTable()}
              </div>
           )}
-          {activeTab === 'Students' && renderStudents()}
-          {activeTab === 'Vehicles' && renderVehicles()}
           {activeTab === 'Earnings' && renderEarnings()}
-          {activeTab === 'Settings' && renderSettings()}
+          
+          {activeTab === 'Students' && (
+            <div className="max-w-7xl mx-auto space-y-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100">
+                  <h3 className="text-lg font-bold text-slate-800">Student Directory ({uniqueStudents.length})</h3>
+                  <p className="text-sm text-slate-500 mt-1">Unique clients automatically derived from booking history.</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50/50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact Info</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Bookings</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Spent</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {uniqueStudents.map((s, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/80">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                {s.name.charAt(0)}
+                              </div>
+                              <div className="ml-4 font-medium text-slate-900">{s.name}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-slate-600 flex items-center"><Mail size={14} className="mr-2 text-slate-400"/> {s.email}</div>
+                            <div className="text-sm text-slate-600 flex items-center mt-1"><Phone size={14} className="mr-2 text-slate-400"/> {s.phone || 'N/A'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-slate-900 font-medium">
+                            {s.total_bookings}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-sm font-semibold">
+                              ${s.total_spent}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'Vehicles' && (
+            <div className="max-w-7xl mx-auto space-y-6">
+              <div className="flex justify-between items-end mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-800">Fleet Management</h2>
+                  <p className="text-slate-500 text-sm mt-1">Manage your active instruction vehicles.</p>
+                </div>
+                <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                  + Add Vehicle
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {mockVehicles.map(v => (
+                  <div key={v.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 mr-4">
+                          <Car size={24} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-900">{v.year} {v.make} {v.model}</h3>
+                          <p className="text-xs text-slate-500">{v.type}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${v.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {v.status}
+                      </span>
+                    </div>
+                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Current Mileage:</span>
+                        <span className="font-medium text-slate-900">{v.mileage}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Next Service:</span>
+                        <span className="font-medium text-slate-900">{v.next_service}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'Settings' && (
+            <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Admin Email</label>
+                  <input type="email" disabled value="koryobjectifs@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Notification Email</label>
+                  <input type="email" defaultValue="koryobjectifs@gmail.com" className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none" />
+                  <p className="text-xs text-slate-500 mt-1">This is where Web3Forms sends new booking alerts.</p>
+                </div>
+                <button className="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'Support' && (
             <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center py-16">
               <HelpCircle size={64} className="mx-auto text-slate-300 mb-6" />
