@@ -95,12 +95,22 @@ const Dashboard = () => {
       
       if (filterTimeframe === 'Today') {
         matchDate = bDate.toDateString() === now.toDateString();
+      } else if (filterTimeframe === 'Yesterday') {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        matchDate = bDate.toDateString() === yesterday.toDateString();
       } else if (filterTimeframe === 'Last 7 Days') {
         const weekAgo = new Date(now.setDate(now.getDate() - 7));
         matchDate = bDate >= weekAgo;
       } else if (filterTimeframe === 'Last 30 Days') {
         const monthAgo = new Date(now.setDate(now.getDate() - 30));
         matchDate = bDate >= monthAgo;
+      } else if (filterTimeframe === 'Last 3 Months') {
+        const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
+        matchDate = bDate >= threeMonthsAgo;
+      } else if (filterTimeframe === 'Last 6 Months') {
+        const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
+        matchDate = bDate >= sixMonthsAgo;
       } else if (filterTimeframe === 'This Month') {
         matchDate = bDate.getMonth() === now.getMonth() && bDate.getFullYear() === now.getFullYear();
       } else if (filterTimeframe === 'This Year') {
@@ -228,8 +238,11 @@ const Dashboard = () => {
           >
             <option value="All Time">All Time</option>
             <option value="Today">Today</option>
+            <option value="Yesterday">Yesterday</option>
             <option value="Last 7 Days">Last 7 Days</option>
             <option value="Last 30 Days">Last 30 Days</option>
+            <option value="Last 3 Months">Last 3 Months</option>
+            <option value="Last 6 Months">Last 6 Months</option>
             <option value="This Month">This Month</option>
             <option value="This Year">This Year</option>
           </select>
@@ -284,14 +297,14 @@ const Dashboard = () => {
       </div>
       
       {/* Aggregation Control (Only shown visually if relevant, but exists globally) */}
-      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+      <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <span className="text-xs text-slate-500 font-medium">Customize Chart View:</span>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
+        <div className="flex bg-slate-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
           {['Daily', 'Weekly', 'Monthly'].map(agg => (
             <button
               key={agg}
               onClick={() => setFilterAggregation(agg)}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${filterAggregation === agg ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition-colors ${filterAggregation === agg ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               {agg}
             </button>
@@ -439,19 +452,13 @@ const Dashboard = () => {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={10} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Earnings"]} />
-                <Area type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} fillOpacity={1} fill="url(#colorCurrent)" />
-              </AreaChart>
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, ""]} />
+                <Line type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -489,19 +496,13 @@ const Dashboard = () => {
         
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorEarningsFull" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
+            <BarChart data={packageEarnings}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} />
-              <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Revenue"]} />
-              <Area type="monotone" dataKey="current" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorEarningsFull)" activeDot={{r: 8}} />
-            </AreaChart>
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
+              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Revenue"]} />
+              <Bar dataKey="earnings" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
