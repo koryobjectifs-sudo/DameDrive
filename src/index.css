@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "sans-serif";
+  --color-primary: #1e3a8a; /* Deep Blue */
+  --color-primary-dark: #172554;
+  --color-accent: #f59e0b; /* Golden Yellow */
+  --color-accent-hover: #d97706;
+  --color-background: #f8fafc; /* Light Gray */
+  --color-surface: #ffffff;
+}
+
+body {
+  background-color: var(--color-background);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base styles for smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
