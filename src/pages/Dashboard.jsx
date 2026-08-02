@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin } from 'lucide-react';
+import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
 
@@ -38,7 +38,6 @@ const Dashboard = () => {
         { event: '*', schema: 'public', table: 'bookings' },
         (payload) => {
           console.log('Real-time update received!', payload);
-          // Just refetch for simplicity and to guarantee order
           fetchBookings();
         }
       )
@@ -70,7 +69,8 @@ const Dashboard = () => {
     }
   };
 
-  // Compute Stats
+  // --- Data Computation ---
+
   const totalBookings = bookings.length;
   const contacted = bookings.filter(b => b.status === 'contacted').length;
   const pending = totalBookings - contacted;
@@ -114,12 +114,367 @@ const Dashboard = () => {
     { name: 'Pending', value: pending || 1 },
   ];
 
+  // Derived Unique Students
+  const getUniqueStudents = () => {
+    const studentsMap = {};
+    bookings.forEach(b => {
+      const key = b.email;
+      if (!studentsMap[key]) {
+        studentsMap[key] = {
+          name: b.name,
+          email: b.email,
+          phone: b.phone,
+          total_bookings: 0,
+          total_spent: 0,
+          last_booking: b.created_at
+        };
+      }
+      studentsMap[key].total_bookings += 1;
+      const amount = parseFloat((b.total_amount || '').replace('$', '')) || 0;
+      studentsMap[key].total_spent += amount;
+      
+      if (new Date(b.created_at) > new Date(studentsMap[key].last_booking)) {
+        studentsMap[key].last_booking = b.created_at;
+        studentsMap[key].name = b.name; // Use most recent name
+        studentsMap[key].phone = b.phone;
+      }
+    });
+    return Object.values(studentsMap).sort((a, b) => new Date(b.last_booking) - new Date(a.last_booking));
+  };
+  const uniqueStudents = getUniqueStudents();
+
+  // Mock Vehicles
+  const mockVehicles = [
+    { id: 1, make: 'Toyota', model: 'Camry', year: '2023', type: 'Automatic', status: 'Active', mileage: '12,450 km', next_service: '15,000 km' },
+    { id: 2, make: 'Honda', model: 'Civic', year: '2022', type: 'Manual', status: 'Active', mileage: '28,100 km', next_service: '30,000 km' },
+    { id: 3, make: 'Toyota', model: 'Corolla', year: '2024', type: 'Automatic', status: 'Maintenance', mileage: '5,200 km', next_service: '10,000 km' },
+  ];
+
+  // Package Earnings for Bar Chart
+  const getPackageEarnings = () => {
+    const pkgMap = {};
+    bookings.forEach(b => {
+      const pkg = b.package || 'Other';
+      const amount = parseFloat((b.total_amount || '').replace('$', '')) || 0;
+      if (!pkgMap[pkg]) pkgMap[pkg] = 0;
+      pkgMap[pkg] += amount;
+    });
+    return Object.keys(pkgMap).map(key => ({ name: key, earnings: pkgMap[key] }));
+  };
+  const packageEarnings = getPackageEarnings();
+
+
+  // --- Render Components ---
+
+  const renderBookingsTable = (limit = null) => {
+    const displayBookings = limit ? bookings.slice(0, limit) : bookings;
+    
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-800">{limit ? "Recent Bookings" : "All Bookings"}</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Client Info</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Package Details</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Received</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status & Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading && displayBookings.length === 0 ? (
+                <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">Loading bookings...</td></tr>
+              ) : displayBookings.length === 0 ? (
+                <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No booking requests yet!</td></tr>
+              ) : (
+                displayBookings.map((booking) => (
+                  <tr key={booking.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold uppercase shrink-0">
+                          {booking.name.charAt(0)}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-semibold text-slate-900">{booking.name}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">{booking.phone}</div>
+                          <div className="text-xs text-slate-400">{booking.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-slate-900 flex items-center">
+                        <MapPin size={14} className="text-primary mr-1.5" />
+                        {booking.package}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1 flex items-center">
+                        <Clock size={12} className="mr-1.5" />
+                        {booking.estimated_hours} Hours
+                      </div>
+                      <div className="text-xs text-slate-900 font-medium mt-1 bg-slate-100 inline-block px-2 py-0.5 rounded">
+                        {booking.total_amount}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-600 font-medium">
+                        {new Date(booking.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {new Date(booking.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right flex flex-col items-end">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold mb-2 ${
+                          booking.status === 'contacted'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-amber-50 text-amber-700'
+                        }`}
+                      >
+                        {booking.status === 'contacted' ? 'Completed' : 'Ongoing'}
+                      </span>
+                      <button
+                        onClick={() => toggleStatus(booking.id, booking.status)}
+                        className="text-xs text-primary hover:text-primary-dark font-medium underline cursor-pointer"
+                      >
+                        Toggle Status
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDashboard = () => (
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+          <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mr-4">
+            <Calendar size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-slate-800">{totalBookings}</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Total Bookings</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mr-4">
+            <DollarSign size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-slate-800">${totalEarnings}</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Total Earnings</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+          <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mr-4">
+            <Clock size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-slate-800">{pending}</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Pending Clients</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mr-4">
+            <CheckCircle size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-slate-800">{contacted}</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Contacted Clients</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-800">Earnings Overview</h3>
+          </div>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, ""]} />
+                <Line type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <h3 className="text-lg font-bold text-slate-800 mb-6">Booking Status</h3>
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            <div className="h-48 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    <Cell fill={COLORS[0]} />
+                    <Cell fill={COLORS[3]} />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+              <span className="text-2xl font-bold text-slate-800">{totalBookings}</span>
+              <span className="text-xs text-slate-500">Total</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {renderBookingsTable(5)}
+    </div>
+  );
+
+  const renderStudents = () => (
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800">Student Directory ({uniqueStudents.length})</h3>
+          <p className="text-sm text-slate-500 mt-1">Unique clients automatically derived from booking history.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact Info</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Bookings</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Spent</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {uniqueStudents.map((s, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/80">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                        {s.name.charAt(0)}
+                      </div>
+                      <div className="ml-4 font-medium text-slate-900">{s.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-slate-600 flex items-center"><Mail size={14} className="mr-2 text-slate-400"/> {s.email}</div>
+                    <div className="text-sm text-slate-600 flex items-center mt-1"><Phone size={14} className="mr-2 text-slate-400"/> {s.phone || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-900 font-medium">
+                    {s.total_bookings}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-sm font-semibold">
+                      ${s.total_spent}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderVehicles = () => (
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Fleet Management</h2>
+          <p className="text-slate-500 text-sm mt-1">Manage your active instruction vehicles.</p>
+        </div>
+        <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          + Add Vehicle
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockVehicles.map(v => (
+          <div key={v.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 mr-4">
+                  <Car size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{v.year} {v.make} {v.model}</h3>
+                  <p className="text-xs text-slate-500">{v.type}</p>
+                </div>
+              </div>
+              <span className={`px-2 py-1 rounded text-xs font-bold ${v.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                {v.status}
+              </span>
+            </div>
+            <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Current Mileage:</span>
+                <span className="font-medium text-slate-900">{v.mileage}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Next Service:</span>
+                <span className="font-medium text-slate-900">{v.next_service}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderEarnings = () => (
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Financial Overview</h2>
+        <p className="text-3xl font-bold text-emerald-600 mb-8">${totalEarnings} <span className="text-sm font-medium text-slate-500">Total Revenue</span></p>
+        
+        <div className="h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={packageEarnings}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
+              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, "Revenue"]} />
+              <Bar dataKey="earnings" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSettings = () => (
+    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Admin Email</label>
+          <input type="email" disabled value="koryobjectifs@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Notification Email</label>
+          <input type="email" defaultValue="koryobjectifs@gmail.com" className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none" />
+          <p className="text-xs text-slate-500 mt-1">This is where Web3Forms sends new booking alerts.</p>
+        </div>
+        <button className="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
       
       {/* Sidebar */}
       <aside className="w-64 bg-[#0f172a] text-slate-300 flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-slate-800">
+        <div className="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
           <Car className="text-yellow-400 mr-3" size={24} />
           <span className="text-white font-bold text-lg tracking-wide">DameDrive</span>
         </div>
@@ -155,7 +510,7 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="p-4 m-4 bg-slate-800 rounded-xl relative overflow-hidden">
+        <div className="p-4 m-4 bg-slate-800 rounded-xl relative overflow-hidden shrink-0">
           <div className="relative z-10 flex flex-col items-center text-center">
             <div className="bg-slate-700 p-2 rounded-full mb-3 shadow-inner">
               <User className="text-yellow-400" size={24} />
@@ -207,220 +562,26 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Dashboard Content */}
+        {/* Dynamic Tab Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab !== 'Dashboard' ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
-              <Settings size={48} className="text-slate-300 mb-4" />
-              <h3 className="text-xl font-semibold text-slate-700">Coming Soon</h3>
-              <p className="mt-2">The {activeTab} module is currently under development.</p>
-            </div>
-          ) : (
-            <div className="max-w-7xl mx-auto space-y-6">
-              
-              {/* Stats Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
-                  <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mr-4">
-                    <Calendar size={24} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-slate-800">{totalBookings}</p>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Total Bookings</p>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mr-4">
-                    <DollarSign size={24} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-slate-800">${totalEarnings}</p>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Total Earnings</p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
-                  <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mr-4">
-                    <Clock size={24} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-slate-800">{pending}</p>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Pending Clients</p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center">
-                  <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mr-4">
-                    <CheckCircle size={24} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-slate-800">{contacted}</p>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Contacted Clients</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Line Chart */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-slate-800">Earnings Overview</h3>
-                    <div className="flex items-center space-x-4 text-sm">
-                      <span className="flex items-center text-slate-600"><span className="w-3 h-3 rounded-full bg-primary mr-2"></span>This Week</span>
-                      <span className="flex items-center text-slate-400"><span className="w-3 h-3 rounded-full border-2 border-slate-300 mr-2"></span>Last Week</span>
-                    </div>
-                  </div>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => `$${val}`} dx={-10} />
-                        <Tooltip 
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          formatter={(value) => [`$${value}`, ""]}
-                        />
-                        <Line type="monotone" dataKey="current" stroke="#1d4ed8" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
-                        <Line type="monotone" dataKey="previous" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Pie Chart */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-                  <h3 className="text-lg font-bold text-slate-800 mb-6">Booking Status</h3>
-                  <div className="flex-1 flex flex-col items-center justify-center relative">
-                    <div className="h-48 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            <Cell fill={COLORS[0]} />
-                            <Cell fill={COLORS[3]} />
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-                      <span className="text-2xl font-bold text-slate-800">{totalBookings}</span>
-                      <span className="text-xs text-slate-500">Total</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-center space-x-6">
-                    <div className="flex items-center">
-                      <span className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>
-                      <div className="text-sm">
-                        <p className="font-medium text-slate-700">Contacted</p>
-                        <p className="text-slate-500">{contacted}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-3 h-3 rounded-full bg-amber-500 mr-2"></span>
-                      <div className="text-sm">
-                        <p className="font-medium text-slate-700">Pending</p>
-                        <p className="text-slate-500">{pending}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Bookings List */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-slate-800">Recent Bookings</h3>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50/50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Client Info</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Package Details</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Received</th>
-                        <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status & Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {loading && bookings.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="px-6 py-8 text-center text-slate-500">Loading bookings...</td>
-                        </tr>
-                      ) : bookings.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="px-6 py-8 text-center text-slate-500">No booking requests yet!</td>
-                        </tr>
-                      ) : (
-                        bookings.map((booking) => (
-                          <tr key={booking.id} className="hover:bg-slate-50/80 transition-colors group">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold uppercase shrink-0">
-                                  {booking.name.charAt(0)}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-semibold text-slate-900">{booking.name}</div>
-                                  <div className="text-xs text-slate-500 mt-0.5">{booking.phone}</div>
-                                  <div className="text-xs text-slate-400">{booking.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm font-medium text-slate-900 flex items-center">
-                                <MapPin size={14} className="text-primary mr-1.5" />
-                                {booking.package}
-                              </div>
-                              <div className="text-xs text-slate-500 mt-1 flex items-center">
-                                <Clock size={12} className="mr-1.5" />
-                                {booking.estimated_hours} Hours
-                              </div>
-                              <div className="text-xs text-slate-900 font-medium mt-1 bg-slate-100 inline-block px-2 py-0.5 rounded">
-                                {booking.total_amount}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-slate-600 font-medium">
-                                {new Date(booking.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </div>
-                              <div className="text-xs text-slate-400 mt-0.5">
-                                {new Date(booking.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right flex flex-col items-end">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold mb-2 ${
-                                  booking.status === 'contacted'
-                                    ? 'bg-emerald-50 text-emerald-700'
-                                    : 'bg-amber-50 text-amber-700'
-                                }`}
-                              >
-                                {booking.status === 'contacted' ? 'Completed' : 'Ongoing'}
-                              </span>
-                              <button
-                                onClick={() => toggleStatus(booking.id, booking.status)}
-                                className="text-xs text-primary hover:text-primary-dark font-medium underline cursor-pointer"
-                              >
-                                Toggle Status
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div className="h-8"></div>
+          {activeTab === 'Dashboard' && renderDashboard()}
+          {activeTab === 'Bookings' && (
+             <div className="max-w-7xl mx-auto space-y-6">
+               {renderBookingsTable()}
+             </div>
+          )}
+          {activeTab === 'Students' && renderStudents()}
+          {activeTab === 'Vehicles' && renderVehicles()}
+          {activeTab === 'Earnings' && renderEarnings()}
+          {activeTab === 'Settings' && renderSettings()}
+          {activeTab === 'Support' && (
+            <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center py-16">
+              <HelpCircle size={64} className="mx-auto text-slate-300 mb-6" />
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">Need Help?</h2>
+              <p className="text-slate-500 mb-8">Contact DameDrive technical support anytime.</p>
+              <a href="mailto:support@damedrive.com" className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full transition-colors">
+                Email Support
+              </a>
             </div>
           )}
         </div>
