@@ -38,10 +38,7 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-12 lg:mb-0">
-            <a href="#booking" className="bg-white hover:bg-slate-100 text-[#0A0F1C] px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 text-center flex items-center justify-center gap-2">
-              Book First Lesson
-            </a>
-            <a href="#packages" className="bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all border border-white/10 backdrop-blur-sm active:scale-95 text-center flex items-center justify-center gap-2">
+            <a href="#packages" className="bg-white hover:bg-slate-100 text-[#0A0F1C] px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 text-center flex items-center justify-center gap-2">
               Explore Packages
             </a>
           </div>
@@ -77,10 +74,10 @@ const Hero = () => {
             className="relative lg:ml-auto w-full max-w-lg mx-auto"
           >
             {/* Main Image Container */}
-            <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 aspect-[4/5] sm:aspect-[4/4] group">
+            <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 aspect-[4/5] sm:aspect-[4/4] group bg-white">
               <div className="absolute inset-0 bg-[#0A0F1C]/20 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
               <img 
-                src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070&auto=format&fit=crop" 
+                src="/hero-image-real.jpg" 
                 alt="Premium driving lessons" 
                 fetchpriority="high"
                 decoding="async"

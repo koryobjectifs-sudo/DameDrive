@@ -44,6 +44,18 @@ const Booking = () => {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
+      // Robust reset whenever modal closes
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          service: 'comprehensive',
+          message: '',
+          sessions: [{ date: '', hours: '2' }]
+        });
+      }, 300);
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
@@ -52,6 +64,14 @@ const Booking = () => {
     setIsOpen(false);
     setTimeout(() => {
       setIsSubmitted(false);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        service: 'comprehensive',
+        message: '',
+        sessions: [{ date: '', hours: '2' }]
+      });
     }, 300);
     window.history.pushState('', document.title, window.location.pathname + window.location.search);
   };

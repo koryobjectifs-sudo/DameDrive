@@ -37,12 +37,12 @@ const Services = () => {
   ];
 
   return (
-    <section id="services" className="py-12 md:py-16 bg-slate-50 relative">
+    <section id="services" className="py-10 md:py-16 bg-slate-50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-10">
           <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Our Packages</h2>
           <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Tailored Driving Lessons</h3>
-          <p className="text-slate-600 text-lg">Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.</p>
+          <p className="text-slate-600 text-base md:text-lg">Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
