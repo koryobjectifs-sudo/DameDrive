@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Car } from 'lucide-react';
+import { Menu, X, Car, ArrowLeft } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,12 +33,12 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Services', href: '#services', id: 'services' },
-    { name: 'How It Works', href: '#how-it-works', id: 'how-it-works' },
-    { name: 'About', href: '#about', id: 'about' },
-    { name: 'Reviews', href: '#reviews', id: 'reviews' },
-    { name: 'Packages', href: '#packages', id: 'packages' },
-    { name: 'FAQ', href: '#faq', id: 'faq' },
+    { name: 'About', href: '/#about', id: 'about' },
+    { name: 'How It Works', href: '/how-it-works', id: 'how-it-works' },
+    { name: 'Services', href: '/services', id: 'services' },
+    { name: 'Pricing', href: '/pricing', id: 'pricing' },
+    { name: 'Reviews', href: '/reviews', id: 'reviews' },
+    { name: 'FAQ', href: '/faq', id: 'faq' },
   ];
 
   // Prevent scrolling when mobile menu is open
@@ -50,20 +53,31 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-4' : 'bg-white/50 backdrop-blur-sm py-5 lg:py-6'
+        className={`sticky top-0 w-full z-50 transition-all duration-300 ${
+          isScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-4' : 'bg-white py-5 lg:py-6 border-b border-slate-100'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="bg-primary text-white p-2 rounded-lg">
-                <Car size={24} />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">
-                DameDrive
-              </span>
+            {/* Logo and Back Button */}
+            <div className="flex items-center gap-4">
+              {location.pathname !== '/' && (
+                <button 
+                  onClick={() => navigate(-1)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all border border-slate-100 hover:border-primary/20 hover:shadow-sm"
+                  aria-label="Go Back"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="bg-primary text-white p-2 rounded-lg group-hover:scale-105 transition-transform">
+                  <Car size={24} />
+                </div>
+                <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors">
+                  DameDrive
+                </span>
+              </Link>
             </div>
 
             {/* Desktop Nav */}

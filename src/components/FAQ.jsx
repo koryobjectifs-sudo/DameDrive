@@ -1,40 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
-
-const FAQItem = ({ question, answer, isOpen, onClick }) => {
-  return (
-    <div className="border-b border-slate-200">
-      <button 
-        className="w-full py-6 flex justify-between items-center focus:outline-none text-left"
-        onClick={onClick}
-      >
-        <span className="text-lg font-semibold text-slate-900">{question}</span>
-        <ChevronDown 
-          className={`w-5 h-5 text-primary transition-transform duration-300 flex-shrink-0 ml-4 ${isOpen ? 'rotate-180' : ''}`} 
-        />
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <p className="pb-6 text-slate-600 leading-relaxed pr-8">
-              {answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const faqs = [
     {
@@ -59,25 +28,138 @@ const FAQ = () => {
     }
   ];
 
+  const handleNext = () => {
+    setActiveIndex((prev) => Math.min(prev + 1, faqs.length - 1));
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => Math.max(prev - 1, 0));
+  };
+
   return (
-    <section id="faq" className="py-12 md:py-16 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Got Questions?</h2>
-          <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Frequently Asked Questions</h3>
+    <section id="faq" className="py-12 md:py-16 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Split Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+          <div className="max-w-2xl">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+              Frequently<br />
+              Asked <span className="text-primary">Questions</span>
+            </h2>
+          </div>
+          
+          <div className="lg:w-1/3 flex flex-col items-start lg:items-end text-left lg:text-right">
+            <p className="text-slate-500 text-lg mb-6 leading-relaxed max-w-sm">
+              Find answers to common questions about our driving lessons, test prep, and scheduling policies.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={handlePrev}
+                disabled={activeIndex === 0}
+                className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-400 transition-colors bg-white hover:bg-slate-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Previous question"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <button 
+                onClick={handleNext}
+                disabled={activeIndex === faqs.length - 1}
+                className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Next question"
+              >
+                <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-slate-50 rounded-2xl p-6 md:p-10 border border-slate-100">
-          {faqs.map((faq, idx) => (
-            <FAQItem 
-              key={idx}
-              question={faq.question}
-              answer={faq.answer}
-              isOpen={openIndex === idx}
-              onClick={() => setOpenIndex(openIndex === idx ? -1 : idx)}
-            />
-          ))}
+        {/* Stacked Cards Deck */}
+        <div className="relative h-[450px] w-full max-w-[400px] md:max-w-[500px] lg:max-w-[600px] mx-auto lg:mx-0">
+          <AnimatePresence>
+            {faqs.map((faq, idx) => {
+              const diff = idx - activeIndex;
+              const isDismissed = diff < 0;
+              const isActive = diff === 0;
+              const isUpcoming = diff > 0;
+              
+              // Only render cards that are active, upcoming (up to 3 in the pile), or just dismissed (for exit animation)
+              if (diff > 3 || diff < -1) return null;
+
+              // Calculate physics for the pile
+              let xPos = 0;
+              let scale = 1;
+              let zIndex = 10;
+              let opacity = 1;
+
+              if (isDismissed) {
+                xPos = -200; // Swipe left away
+                opacity = 0;
+                zIndex = 0;
+              } else if (isActive) {
+                xPos = 0;
+                scale = 1;
+                zIndex = 10;
+              } else if (isUpcoming) {
+                xPos = diff * 40; // Shift to the right to show the edge
+                scale = 1 - (diff * 0.05); // Scale down the further back it is
+                zIndex = 10 - diff;
+                opacity = 1 - (diff * 0.1); // Slightly fade items further in the pile
+              }
+
+              return (
+                <motion.div
+                  key={idx}
+                  onClick={() => {
+                    if (isUpcoming) setActiveIndex(idx);
+                  }}
+                  initial={false}
+                  animate={{
+                    x: xPos,
+                    scale: scale,
+                    zIndex: zIndex,
+                    opacity: opacity,
+                    backgroundColor: isActive ? '#2563eb' : '#f8fafc', // blue-600 vs slate-50
+                    borderColor: isActive ? '#2563eb' : '#f1f5f9', // blue-600 vs slate-100
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className={`absolute inset-0 rounded-3xl p-8 md:p-10 flex flex-col justify-end overflow-hidden border ${
+                    isActive ? 'shadow-2xl shadow-blue-600/20 cursor-default' : 'shadow-xl shadow-slate-900/5 hover:bg-slate-100 cursor-pointer'
+                  }`}
+                  style={{
+                    transformOrigin: 'left center'
+                  }}
+                >
+                  <motion.div className="w-full h-full flex flex-col justify-end">
+                    <motion.h3 
+                      animate={{ color: isActive ? '#ffffff' : '#94a3b8' }}
+                      className="font-bold leading-tight mb-4 text-xl md:text-2xl"
+                    >
+                      {faq.question}
+                    </motion.h3>
+                    
+                    <div className="overflow-hidden">
+                      <motion.div
+                        initial={false}
+                        animate={{ 
+                          height: isActive ? 'auto' : 0,
+                          opacity: isActive ? 1 : 0,
+                          y: isActive ? 0 : 20
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <p className="text-blue-100 text-sm md:text-base leading-relaxed pt-2">
+                          {faq.answer}
+                        </p>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
+
       </div>
     </section>
   );

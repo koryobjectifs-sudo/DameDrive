@@ -25,17 +25,16 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 md:py-24 bg-white text-slate-900 relative overflow-hidden">
+    <section id="how-it-works" className="py-12 md:py-16 bg-white text-slate-900 relative overflow-hidden">
       {/* Decorative dots pattern (light theme) */}
       <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-20">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Simple Process</h2>
-          <h3 className="text-3xl md:text-4xl font-extrabold mb-4">Your Journey to the Driver's Seat</h3>
-          <p className="text-lg text-slate-600">
-            We've made it incredibly easy to start your driving journey. Just three simple steps between you and your license.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 border-b border-slate-100 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Simple Process</h2>
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-0 tracking-tight">Your Journey to Independence</h3>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-12 lg:gap-8">

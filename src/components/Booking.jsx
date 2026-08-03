@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Clock, User, Phone, Mail, X, CreditCard, CheckCircle2, Plus, Trash2, Calendar, Loader2, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { supabase } from '../supabaseClient';
 
@@ -15,6 +16,9 @@ const Booking = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,18 +30,13 @@ const Booking = () => {
   });
 
   useEffect(() => {
-    if (window.location.hash === '#book') setIsOpen(true);
-
-    const handleHashChange = () => {
-      setIsOpen(window.location.hash === '#book');
-      if (window.location.hash !== '#book') {
-        setIsSubmitted(false);
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+    if (location.hash === '#book') {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+      setIsSubmitted(false);
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,7 +59,7 @@ const Booking = () => {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  const closeModal = () => {
+    const closeModal = () => {
     setIsOpen(false);
     setTimeout(() => {
       setIsSubmitted(false);
@@ -73,7 +72,7 @@ const Booking = () => {
         sessions: [{ date: '', hours: '2' }]
       });
     }, 300);
-    window.history.pushState('', document.title, window.location.pathname + window.location.search);
+    navigate(location.pathname + location.search, { replace: true });
   };
 
   const handleSessionChange = (index, field, value) => {
@@ -124,7 +123,7 @@ const Booking = () => {
       }
 
       const payload = {
-        access_key: "e63b90a6-896e-47d7-a926-e5987e56e515",
+        access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "e63b90a6-896e-47d7-a926-e5987e56e515",
         subject: `New Booking Request from ${formData.name}`,
         from_name: "DameDrive Booking",
         name: formData.name,

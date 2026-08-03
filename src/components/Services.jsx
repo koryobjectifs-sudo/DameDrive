@@ -1,51 +1,69 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Key, Route, Navigation, FileCheck, Snowflake, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Key, Route, Navigation, FileCheck, Snowflake, MapPin, ArrowRight } from 'lucide-react';
 
 const Services = () => {
+  const navigate = useNavigate();
   const services = [
     {
+      id: "beginner-lessons",
       title: "Beginner Lessons",
-      desc: "Comprehensive step-by-step curriculum for complete beginners.",
-      icon: <Key className="w-6 h-6" />
+      desc: "Step-by-step curriculum for complete beginners.",
+      icon: <Key className="w-5 h-5" />,
+      image: "/images/beginner_lessons_hero_1785788722912.png"
     },
     {
+      id: "road-test-prep",
       title: "Road Test Preparation",
-      desc: "Mock tests and route practice to guarantee you pass first time.",
-      icon: <FileCheck className="w-6 h-6" />
+      desc: "Mock tests and route practice to guarantee passing.",
+      icon: <FileCheck className="w-5 h-5" />,
+      image: "/images/road_test_prep_hero_1785788750511.png"
     },
     {
+      id: "highway-driving",
       title: "Highway Driving",
-      desc: "Build confidence merging, passing, and navigating busy highways.",
-      icon: <Navigation className="w-6 h-6" />
+      desc: "Build confidence merging and navigating highways.",
+      icon: <Navigation className="w-5 h-5" />,
+      image: "/images/highway_driving_hero_1785788797918.png"
     },
     {
+      id: "parking-practice",
       title: "Parking Practice",
-      desc: "Master parallel, reverse, and forward parking with easy reference points.",
-      icon: <MapPin className="w-6 h-6" />
+      desc: "Master parallel and reverse parking with ease.",
+      icon: <MapPin className="w-5 h-5" />,
+      image: "/images/parking_practice_hero_1785788810001.png"
     },
     {
+      id: "winter-driving",
       title: "Winter Driving",
-      desc: "Essential skills for safe handling in snow and icy Canadian conditions.",
-      icon: <Snowflake className="w-6 h-6" />
+      desc: "Essential skills for safe handling in snow and ice.",
+      icon: <Snowflake className="w-5 h-5" />,
+      image: "/images/winter_driving_hero_1785788828096.png"
     },
     {
+      id: "refresher-courses",
       title: "Refresher Courses",
-      desc: "Brush up your skills or adapt to Canadian driving rules for immigrants.",
-      icon: <Route className="w-6 h-6" />
+      desc: "Brush up your skills and adapt to Canadian rules.",
+      icon: <Route className="w-5 h-5" />,
+      image: "/images/refresher_courses_hero_1785788852301.png"
     }
   ];
 
   return (
-    <section id="services" className="py-10 md:py-16 bg-slate-50 relative overflow-hidden">
+    <section id="services" className="py-12 md:py-20 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Our Packages</h2>
-          <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Tailored Driving Lessons</h3>
-          <p className="text-slate-600 text-base md:text-lg">Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-100 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Our Packages</h2>
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">Tailored Driving Lessons</h3>
+            <p className="text-slate-500 text-base md:text-lg font-light leading-relaxed">
+              Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.
+            </p>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
           {services.map((service, idx) => (
             <motion.div 
               key={idx}
@@ -53,15 +71,30 @@ const Services = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1, duration: 0.5 }}
-              className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-primary/20 transition-all duration-300 group cursor-pointer relative overflow-hidden"
+              onClick={() => navigate(`/services/${service.id}`)}
+              className="group flex flex-col p-4 rounded-3xl hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-transparent hover:border-slate-100 shadow-sm hover:shadow-xl"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[100px] -z-0 transition-transform group-hover:scale-110 duration-500"></div>
-              
-              <div className="w-12 h-12 bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors relative z-10">
-                {service.icon}
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 relative shadow-md">
+                <img 
+                  src={service.image} 
+                  alt={service.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/0 transition-colors duration-300"></div>
+                <div className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm text-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                  {service.icon}
+                </div>
               </div>
-              <h4 className="text-xl font-bold text-slate-900 mb-3 relative z-10">{service.title}</h4>
-              <p className="text-slate-600 relative z-10 leading-relaxed">{service.desc}</p>
+
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors">
+                  {service.title}
+                </h4>
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">
+                  <ArrowRight size={16} />
+                </div>
+              </div>
+              <p className="text-slate-500 text-sm leading-relaxed">{service.desc}</p>
             </motion.div>
           ))}
         </div>

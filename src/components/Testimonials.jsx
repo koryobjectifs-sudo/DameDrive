@@ -30,12 +30,11 @@ const Testimonials = () => {
   return (
     <section id="reviews" className="py-12 md:py-16 bg-primary text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <h2 className="text-sm font-bold text-accent uppercase tracking-wider mb-2">Testimonials</h2>
-          <h3 className="text-2xl md:text-3xl font-extrabold mb-2">Student Success Stories</h3>
-          <p className="text-lg text-primary-50">
-            Don't just take our word for it. Here is what our successful students have to say about their experience.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/20 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-accent uppercase tracking-[0.2em] mb-3">Testimonials</h2>
+            <h3 className="text-3xl md:text-4xl font-black mb-0 tracking-tight text-white">Student Success Stories</h3>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
