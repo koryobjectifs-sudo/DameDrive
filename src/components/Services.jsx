@@ -72,7 +72,7 @@ const Services = () => {
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1, duration: 0.5 }}
               onClick={() => navigate(`/services/${service.id}`)}
-              className="group flex flex-col p-4 rounded-3xl hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-transparent hover:border-slate-100 shadow-sm hover:shadow-xl"
+              className="group flex flex-col p-5 rounded-[2rem] bg-white transition-all duration-500 cursor-pointer border border-slate-100/50 shadow-premium hover:-translate-y-2 hover:shadow-premium-hover"
             >
               <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 relative shadow-md">
                 <img 

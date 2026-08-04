@@ -13,7 +13,7 @@ const TrustSection = () => {
   return (
     <section className="relative z-20 -mt-16 sm:-mt-12 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 relative overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-premium hover:shadow-premium-hover transition-all duration-500 border border-white p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-emerald-50/50 opacity-50"></div>
         {badges.map((badge, idx) => (
           <motion.div 
@@ -37,8 +37,8 @@ const TrustSection = () => {
               {badge.icon}
             </motion.div>
             <div className="text-left flex-1 min-w-0">
-              <h4 className="font-bold text-slate-900 text-sm lg:text-base leading-tight truncate">{badge.title}</h4>
-              <p className="text-xs text-slate-500 mt-0.5 truncate">{badge.desc}</p>
+              <h4 className="font-extrabold tracking-tight text-slate-900 text-sm lg:text-base leading-tight truncate">{badge.title}</h4>
+              <p className="text-xs font-medium text-slate-500 mt-0.5 truncate tracking-wide">{badge.desc}</p>
             </div>
           </motion.div>
         ))}

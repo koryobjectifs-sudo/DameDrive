@@ -63,8 +63,8 @@ const Pricing = () => {
           {plans.map((plan, idx) => (
             <div
               key={idx}
-              className={`bg-white rounded-3xl p-5 md:p-6 border shadow-xl relative flex flex-col transition-all ${
-                plan.popular ? 'border-primary ring-2 ring-primary/20 lg:-translate-y-2' : 'border-slate-100'
+              className={`bg-white rounded-[2rem] p-6 md:p-8 border shadow-premium relative flex flex-col transition-all duration-500 hover:-translate-y-2 hover:shadow-premium-hover ${
+                plan.popular ? 'border-primary ring-2 ring-primary/20 lg:-translate-y-3' : 'border-slate-100/50'
               }`}
             >
               {plan.popular && (
@@ -126,10 +126,10 @@ const Pricing = () => {
               
               <a 
                 href="/#book"
-                className={`w-full py-4 rounded-xl text-base text-center font-bold transition-all shadow-md mt-auto ${
+                className={`w-full py-4 rounded-xl text-base text-center font-bold transition-all mt-auto ${
                   plan.popular 
-                    ? 'bg-primary hover:bg-primary-dark text-white shadow-primary/30 hover:-translate-y-1' 
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-900 hover:-translate-y-1'
+                    ? 'bg-primary hover:bg-primary-dark text-white shadow-[0_8px_20px_rgba(30,58,138,0.2)] hover:-translate-y-1' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-900 hover:-translate-y-1 border border-slate-200/50'
                 }`}
               >
                 Book This Package

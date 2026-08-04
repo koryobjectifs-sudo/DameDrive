@@ -26,19 +26,19 @@ const Hero = () => {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-4xl mx-auto text-center flex flex-col items-center"
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 leading-[1.1] drop-shadow-lg">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-6 leading-[1.05] drop-shadow-xl">
             Learn to Drive <br className="hidden sm:block"/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
               With Confidence.
             </span>
           </h1>
           
-          <p className="text-base sm:text-lg text-slate-300 mb-8 leading-relaxed max-w-2xl font-light">
+          <p className="text-lg sm:text-xl text-slate-200 mb-10 leading-relaxed max-w-2xl font-light">
             Professional, patient, and comprehensive driving lessons tailored to you. Get behind the wheel with Canada's top-rated driving instructor.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-12 w-full max-w-sm">
-            <Link to="/services" className="w-full bg-white text-[#0A0F1C] px-6 py-3 rounded-xl font-bold text-base hover:bg-slate-100 transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-1 active:scale-95 text-center">
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-14 w-full max-w-sm">
+            <Link to="/services" className="w-full bg-white text-[#0A0F1C] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] hover:-translate-y-1 active:scale-95 text-center">
               Explore Packages
             </Link>
           </div>
