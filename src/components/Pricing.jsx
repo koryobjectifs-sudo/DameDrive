@@ -74,7 +74,7 @@ const Pricing = () => {
               )}
               
               <h4 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h4>
-              <p className="text-slate-500 text-sm mb-6 h-10 leading-tight">{plan.description}</p>
+              <p className="text-slate-500 text-sm mb-6 min-h-[40px] leading-relaxed">{plan.description}</p>
               
               <div className="mb-6">
                 <span className="text-3xl font-black text-slate-900">${plan.price}</span>

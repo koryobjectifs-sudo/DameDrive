@@ -87,7 +87,7 @@ const Services = () => {
               </div>
 
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors">
+                <h4 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors flex-1 min-w-0 pr-2">
                   {service.title}
                 </h4>
                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">

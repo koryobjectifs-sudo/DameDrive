@@ -36,9 +36,9 @@ const TrustSection = () => {
             >
               {badge.icon}
             </motion.div>
-            <div className="text-left">
-              <h4 className="font-bold text-slate-900 text-sm lg:text-base leading-tight">{badge.title}</h4>
-              <p className="text-xs text-slate-500 mt-0.5">{badge.desc}</p>
+            <div className="text-left flex-1 min-w-0">
+              <h4 className="font-bold text-slate-900 text-sm lg:text-base leading-tight truncate">{badge.title}</h4>
+              <p className="text-xs text-slate-500 mt-0.5 truncate">{badge.desc}</p>
             </div>
           </motion.div>
         ))}
