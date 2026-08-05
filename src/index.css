@@ -8,10 +8,6 @@
   --color-accent-hover: #d97706;
   --color-background: #f8fafc; /* Light Gray */
   --color-surface: #ffffff;
-  
-  /* Premium Apple-like shadows */
-  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
-  --shadow-premium-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 body {
