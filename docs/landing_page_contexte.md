@@ -107,6 +107,140 @@ const Hero = () => {
 export default Hero;
 ```
 
+## Fichier : src/components/TrustSection.jsx
+```jsx
+import React from 'react';
+import { Award, Calendar, Car, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const TrustSection = () => {
+  const badges = [
+    { icon: <Award className="w-6 h-6" />, title: "Certified Instructor", desc: "Ministry approved" },
+    { icon: <Calendar className="w-6 h-6" />, title: "Flexible Scheduling", desc: "Fits your life" },
+    { icon: <Car className="w-6 h-6" />, title: "Modern Vehicles", desc: "Dual-controlled" },
+    { icon: <ShieldCheck className="w-6 h-6" />, title: "Patient Coaching", desc: "Learn safely" },
+  ];
+
+  return (
+    <section className="relative z-20 -mt-16 sm:-mt-12 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-emerald-50/50 opacity-50"></div>
+        {badges.map((badge, idx) => (
+          <motion.div 
+            key={idx}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 + (idx * 0.1) }}
+            className="flex items-center gap-5 px-2 lg:px-8 w-full justify-center md:justify-start py-4 md:py-0 relative z-10 group"
+          >
+            <motion.div 
+              className="w-14 h-14 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "easeInOut",
+                delay: idx * 0.5
+              }}
+            >
+              {badge.icon}
+            </motion.div>
+            <div className="text-left flex-1 min-w-0">
+              <h4 className="font-bold text-slate-900 text-sm lg:text-base leading-tight truncate">{badge.title}</h4>
+              <p className="text-xs text-slate-500 mt-0.5 truncate">{badge.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default TrustSection;
+```
+
+## Fichier : src/components/WhyChooseUs.jsx
+```jsx
+import React from 'react';
+import { Award, Calendar, Shield, Car, User, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const WhyChooseUs = () => {
+  const benefits = [
+    { title: "Ministry Approved", desc: "Professional, fully certified instruction.", icon: <Award className="w-5 h-5" /> },
+    { title: "Flexible Scheduling", desc: "Lesson plans built around your life.", icon: <Calendar className="w-5 h-5" /> },
+    { title: "Safety First", desc: "Safe, dual-controlled learning environment.", icon: <Shield className="w-5 h-5" /> },
+    { title: "Exam Ready", desc: "Real preparation and mock tests.", icon: <Car className="w-5 h-5" /> },
+    { title: "Patient Coaching", desc: "Personalized support for nervous drivers.", icon: <User className="w-5 h-5" /> },
+    { title: "Convenient", desc: "Pick-up and drop-off included.", icon: <MapPin className="w-5 h-5" /> }
+  ];
+
+  return (
+    <section className="py-12 md:py-16 bg-white overflow-hidden text-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          
+          {/* Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative lg:ml-auto w-full max-w-lg mx-auto"
+          >
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white border border-slate-100/50 aspect-square">
+              <img 
+                src="/why-choose-us-real.jpg" 
+                alt="Student celebrating getting license with instructor" 
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+              />
+            </div>
+            {/* Decoration */}
+            <div className="absolute -bottom-6 -left-6 w-48 h-48 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+          </motion.div>
+
+          {/* Text Content */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Why Choose Us</h2>
+            <h3 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight text-slate-900">More than just a driving school.</h3>
+            <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+              We don't just teach you how to pass a test. We build safe, confident, and defensive drivers for life through premium, personalized instruction.
+            </p>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              {benefits.map((benefit, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="mt-1 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
+                    {benefit.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 mb-1">{benefit.title}</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed">{benefit.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default WhyChooseUs;
+```
+
 ## Fichier : src/components/About.jsx
 ```jsx
 import React from 'react';
@@ -175,807 +309,6 @@ const About = () => {
 };
 
 export default About;
-```
-
-## Fichier : src/components/Services.jsx
-```jsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Key, Route, Navigation, FileCheck, Snowflake, MapPin, ArrowRight } from 'lucide-react';
-
-const Services = () => {
-  const navigate = useNavigate();
-  const services = [
-    {
-      id: "beginner-lessons",
-      title: "Beginner Lessons",
-      desc: "Step-by-step curriculum for complete beginners.",
-      icon: <Key className="w-5 h-5" />,
-      image: "/images/beginner_lessons_hero_1785788722912.png"
-    },
-    {
-      id: "road-test-prep",
-      title: "Road Test Preparation",
-      desc: "Mock tests and route practice to guarantee passing.",
-      icon: <FileCheck className="w-5 h-5" />,
-      image: "/images/road_test_prep_hero_1785788750511.png"
-    },
-    {
-      id: "highway-driving",
-      title: "Highway Driving",
-      desc: "Build confidence merging and navigating highways.",
-      icon: <Navigation className="w-5 h-5" />,
-      image: "/images/highway_driving_hero_1785788797918.png"
-    },
-    {
-      id: "parking-practice",
-      title: "Parking Practice",
-      desc: "Master parallel and reverse parking with ease.",
-      icon: <MapPin className="w-5 h-5" />,
-      image: "/images/parking_practice_hero_1785788810001.png"
-    },
-    {
-      id: "winter-driving",
-      title: "Winter Driving",
-      desc: "Essential skills for safe handling in snow and ice.",
-      icon: <Snowflake className="w-5 h-5" />,
-      image: "/images/winter_driving_hero_1785788828096.png"
-    },
-    {
-      id: "refresher-courses",
-      title: "Refresher Courses",
-      desc: "Brush up your skills and adapt to Canadian rules.",
-      icon: <Route className="w-5 h-5" />,
-      image: "/images/refresher_courses_hero_1785788852301.png"
-    }
-  ];
-
-  return (
-    <section id="services" className="py-12 md:py-20 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-100 pb-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Our Packages</h2>
-            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">Tailored Driving Lessons</h3>
-            <p className="text-slate-500 text-base md:text-lg font-light leading-relaxed">
-              Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-          {services.map((service, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1, duration: 0.5 }}
-              onClick={() => navigate(`/services/${service.id}`)}
-              className="group flex flex-col p-4 rounded-3xl hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-transparent hover:border-slate-100 shadow-sm hover:shadow-xl"
-            >
-              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 relative shadow-md">
-                <img 
-                  src={service.image} 
-                  alt={service.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/0 transition-colors duration-300"></div>
-                <div className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm text-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                  {service.icon}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors">
-                  {service.title}
-                </h4>
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">
-                  <ArrowRight size={16} />
-                </div>
-              </div>
-              <p className="text-slate-500 text-sm leading-relaxed">{service.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Services;
-```
-
-## Fichier : src/components/Pricing.jsx
-```jsx
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
-
-const Pricing = () => {
-  const [expandedPackage, setExpandedPackage] = useState(null);
-
-  const plans = [
-    {
-      name: "Beginner Package",
-      price: "50",
-      description: "Quick refresher or get comfortable behind the wheel.",
-      marketingText: "Tailored for absolute beginners and nervous drivers. Master vehicle control and basic road awareness in a low-pressure environment.",
-      features: [
-        "2 Hours Minimum",
-        "Free Pick-up & Drop-off",
-        "Basic Maneuvers",
-        "Dual-control Vehicle"
-      ],
-      popular: false
-    },
-    {
-      name: "Comprehensive Plan",
-      price: "45",
-      description: "Our most popular package for students preparing for their test.",
-      marketingText: "Our signature curriculum. Dive deep into complex traffic scenarios, highway driving, and parallel parking to become fully equipped for everyday driving.",
-      features: [
-        "6 Hours Minimum",
-        "Free Pick-up & Drop-off",
-        "Highway & City Driving",
-        "Mock Road Test",
-        "Priority Scheduling"
-      ],
-      popular: true
-    },
-    {
-      name: "Road Test Ready",
-      price: "40",
-      description: "Complete journey from beginner to licensed driver.",
-      marketingText: "The ultimate solution guaranteeing maximum supervised road time. Includes night/winter driving and use of our car for your actual road test.",
-      features: [
-        "10 Hours Minimum",
-        "Free Pick-up & Drop-off",
-        "Winter & Night Driving",
-        "Use of Car for Road Test",
-        "Guaranteed Pass Support"
-      ],
-      popular: false
-    }
-  ];
-
-  return (
-    <section className="py-12 md:py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-200 pb-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Pricing</h2>
-            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-0 tracking-tight">Choose Your Journey</h3>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plans.map((plan, idx) => (
-            <div
-              key={idx}
-              className={`bg-white rounded-3xl p-5 md:p-6 border shadow-xl relative flex flex-col transition-all ${
-                plan.popular ? 'border-primary ring-2 ring-primary/20 lg:-translate-y-2' : 'border-slate-100'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider py-1 px-4 rounded-full shadow-md">
-                  Most Popular
-                </div>
-              )}
-              
-              <h4 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h4>
-              <p className="text-slate-500 text-sm mb-6 h-10 leading-tight">{plan.description}</p>
-              
-              <div className="mb-6">
-                <span className="text-3xl font-black text-slate-900">${plan.price}</span>
-                <span className="text-slate-500 font-medium text-sm">/Hour</span>
-              </div>
-
-              <div className="mb-6 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
-                <button 
-                  onClick={() => setExpandedPackage(expandedPackage === idx ? null : idx)}
-                  className={`w-full flex items-center justify-between p-3 text-sm font-bold transition-colors ${
-                    expandedPackage === idx 
-                    ? 'bg-primary text-white' 
-                    : 'bg-primary/5 text-primary hover:bg-primary/10'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Info size={16} />
-                    WHY CHOOSE THIS?
-                  </span>
-                  {expandedPackage === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </button>
-                
-                <AnimatePresence>
-                  {expandedPackage === idx && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden bg-slate-50"
-                    >
-                      <p className="p-4 text-sm text-slate-700 leading-relaxed border-t border-slate-100">
-                        {plan.marketingText}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              
-              <ul className="space-y-4 mb-8 flex-grow">
-                {plan.features.map((feature, fIdx) => (
-                  <li key={fIdx} className="flex items-start gap-3 text-slate-700">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="text-sm font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <a 
-                href="/#book"
-                className={`w-full py-4 rounded-xl text-base text-center font-bold transition-all shadow-md mt-auto ${
-                  plan.popular 
-                    ? 'bg-primary hover:bg-primary-dark text-white shadow-primary/30 hover:-translate-y-1' 
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-900 hover:-translate-y-1'
-                }`}
-              >
-                Book This Package
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Pricing;
-```
-
-## Fichier : src/components/Testimonials.jsx
-```jsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
-
-const Testimonials = () => {
-  const reviews = [
-    {
-      name: "Sarah Jenkins",
-      role: "First-time Driver",
-      content: "Alex was incredibly patient. I was terrified of highway driving, but he broke it down step by step. Passed my G2 on the first try!",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200"
-    },
-    {
-      name: "David Chen",
-      role: "New Immigrant",
-      content: "Adapting to winter driving in Canada was daunting. The winter driving package gave me exactly the confidence I needed to drive safely.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200"
-    },
-    {
-      name: "Emma Thompson",
-      role: "Road Test Prep",
-      content: "The mock tests were identical to the real thing. When exam day came, I felt like I had already done it a hundred times.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
-    }
-  ];
-
-  return (
-    <section id="reviews" className="py-12 md:py-16 bg-primary text-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/20 pb-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xs font-bold text-accent uppercase tracking-[0.2em] mb-3">Testimonials</h2>
-            <h3 className="text-3xl md:text-4xl font-black mb-0 tracking-tight text-white">Student Success Stories</h3>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          {reviews.map((review, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="bg-white text-slate-900 p-5 rounded-xl shadow-sm relative flex flex-col"
-            >
-              <div className="flex gap-1 mb-2">
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-accent text-accent" />
-                ))}
-              </div>
-              <p className="text-slate-700 mb-4 flex-grow leading-snug text-sm italic">"{review.content}"</p>
-              
-              <div className="flex items-center gap-3 mt-auto">
-                <img 
-                  src={review.image} 
-                  alt={review.name} 
-                  loading="lazy"
-                  decoding="async"
-                  className="w-10 h-10 rounded-full object-cover border border-slate-200"
-                />
-                <div>
-                  <div className="font-bold text-sm text-slate-900">{review.name}</div>
-                  <div className="text-xs text-slate-500">{review.role}</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Testimonials;
-```
-
-## Fichier : src/components/TrustSection.jsx
-```jsx
-import React from 'react';
-import { Award, Calendar, Car, ShieldCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
-
-const TrustSection = () => {
-  const badges = [
-    { icon: <Award className="w-6 h-6" />, title: "Certified Instructor", desc: "Ministry approved" },
-    { icon: <Calendar className="w-6 h-6" />, title: "Flexible Scheduling", desc: "Fits your life" },
-    { icon: <Car className="w-6 h-6" />, title: "Modern Vehicles", desc: "Dual-controlled" },
-    { icon: <ShieldCheck className="w-6 h-6" />, title: "Patient Coaching", desc: "Learn safely" },
-  ];
-
-  return (
-    <section className="relative z-20 -mt-16 sm:-mt-12 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-emerald-50/50 opacity-50"></div>
-        {badges.map((badge, idx) => (
-          <motion.div 
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 + (idx * 0.1) }}
-            className="flex items-center gap-5 px-2 lg:px-8 w-full justify-center md:justify-start py-4 md:py-0 relative z-10 group"
-          >
-            <motion.div 
-              className="w-14 h-14 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: "easeInOut",
-                delay: idx * 0.5
-              }}
-            >
-              {badge.icon}
-            </motion.div>
-            <div className="text-left">
-              <h4 className="font-bold text-slate-900 text-sm lg:text-base leading-tight">{badge.title}</h4>
-              <p className="text-xs text-slate-500 mt-0.5">{badge.desc}</p>
-            </div>
-          </motion.div>
-        ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default TrustSection;
-```
-
-## Fichier : src/components/Stats.jsx
-```jsx
-import React, { useState, useEffect } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-
-const CountUp = ({ end, duration = 2, suffix = "" }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-
-  useEffect(() => {
-    if (isInView) {
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / (duration * 1000), 1);
-        setCount(Math.floor(progress * end));
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        }
-      };
-      window.requestAnimationFrame(step);
-    }
-  }, [isInView, end, duration]);
-
-  return (
-    <span ref={ref}>
-      {count}{suffix}
-    </span>
-  );
-};
-
-const Stats = () => {
-  const stats = [
-    { label: "Students Trained", value: 500, suffix: "+" },
-    { label: "Road Test Success", value: 98, suffix: "%" },
-    { label: "Years Experience", value: 10, suffix: "+" },
-    { label: "Average Rating", value: 5, suffix: "★" }
-  ];
-
-  return (
-    <section className="py-16 md:py-20 bg-[#0A0F1C] border-b border-white/10 relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[300px] bg-blue-600/10 blur-[120px] rounded-[100%]"></div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 divide-x divide-white/10">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="text-center px-4 group">
-              <div className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 mb-3 font-display transform group-hover:scale-105 transition-transform duration-300">
-                <CountUp end={stat.value} suffix={stat.suffix} />
-              </div>
-              <div className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Stats;
-```
-
-## Fichier : src/components/HowItWorks.jsx
-```jsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import { CalendarCheck, Route, Car } from 'lucide-react';
-
-const HowItWorks = () => {
-  const steps = [
-    {
-      num: "01",
-      title: "Book Your Slot",
-      desc: "Choose a time that works for you using our simple online booking system.",
-      icon: <CalendarCheck className="w-8 h-8 text-primary" />
-    },
-    {
-      num: "02",
-      title: "Hit the Road",
-      desc: "Learn from patient, certified instructors in our modern dual-controlled vehicles.",
-      icon: <Car className="w-8 h-8 text-primary" />
-    },
-    {
-      num: "03",
-      title: "Get Licensed",
-      desc: "Pass your road test with confidence and become a safe driver for life.",
-      icon: <Route className="w-8 h-8 text-primary" />
-    }
-  ];
-
-  return (
-    <section id="how-it-works" className="py-12 md:py-16 bg-white text-slate-900 relative overflow-hidden">
-      {/* Decorative dots pattern (light theme) */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 border-b border-slate-100 pb-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Simple Process</h2>
-            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-0 tracking-tight">Your Journey to Independence</h3>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-12 lg:gap-8">
-          {steps.map((step, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.2 }}
-              className="relative group"
-            >
-              {/* Massive background number */}
-              <div className="text-8xl md:text-9xl font-black text-slate-100 absolute -top-12 -left-4 md:-left-8 -z-10 transition-transform group-hover:-translate-y-2">
-                {step.num}
-              </div>
-              
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-primary/20">
-                {step.icon}
-              </div>
-              
-              <h4 className="text-2xl font-bold mb-4">{step.title}</h4>
-              <p className="text-slate-600 leading-relaxed text-lg">{step.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default HowItWorks;
-```
-
-## Fichier : src/components/FAQ.jsx
-```jsx
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-
-const FAQ = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const faqs = [
-    {
-      question: "How long is each driving lesson?",
-      answer: "A standard lesson is 60 minutes long. However, we also offer 90-minute and 120-minute sessions for students who want intensive highway practice or mock road tests."
-    },
-    {
-      question: "Can I use the instructor's car for my road test?",
-      answer: "Yes! If you book our Road Test Package, you can use the same dual-controlled vehicle you trained in for your official road test, which greatly increases pass rates."
-    },
-    {
-      question: "Do you offer pick-up and drop-off?",
-      answer: "Absolutely. We provide free pick-up and drop-off from your home, school, or workplace within our service area."
-    },
-    {
-      question: "What is your cancellation policy?",
-      answer: "We require 24 hours notice for any cancellations or rescheduling. Cancellations made with less than 24 hours notice may be subject to a cancellation fee."
-    },
-    {
-      question: "How many lessons will I need to pass?",
-      answer: "This varies greatly depending on your prior experience and comfort level. On average, complete beginners require between 10 to 15 hours of instruction, while experienced drivers may only need 2-3 hours of test preparation."
-    }
-  ];
-
-  const handleNext = () => {
-    setActiveIndex((prev) => Math.min(prev + 1, faqs.length - 1));
-  };
-
-  const handlePrev = () => {
-    setActiveIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  return (
-    <section id="faq" className="py-12 md:py-16 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Split Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-              Frequently<br />
-              Asked <span className="text-primary">Questions</span>
-            </h2>
-          </div>
-          
-          <div className="lg:w-1/3 flex flex-col items-start lg:items-end text-left lg:text-right">
-            <p className="text-slate-500 text-lg mb-6 leading-relaxed max-w-sm">
-              Find answers to common questions about our driving lessons, test prep, and scheduling policies.
-            </p>
-            <div className="flex gap-4">
-              <button 
-                onClick={handlePrev}
-                disabled={activeIndex === 0}
-                className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-400 transition-colors bg-white hover:bg-slate-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Previous question"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <button 
-                onClick={handleNext}
-                disabled={activeIndex === faqs.length - 1}
-                className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next question"
-              >
-                <ArrowRight size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Stacked Cards Deck */}
-        <div className="relative h-[450px] w-full max-w-[400px] md:max-w-[500px] lg:max-w-[600px] mx-auto lg:mx-0">
-          <AnimatePresence>
-            {faqs.map((faq, idx) => {
-              const diff = idx - activeIndex;
-              const isDismissed = diff < 0;
-              const isActive = diff === 0;
-              const isUpcoming = diff > 0;
-              
-              // Only render cards that are active, upcoming (up to 3 in the pile), or just dismissed (for exit animation)
-              if (diff > 3 || diff < -1) return null;
-
-              // Calculate physics for the pile
-              let xPos = 0;
-              let scale = 1;
-              let zIndex = 10;
-              let opacity = 1;
-
-              if (isDismissed) {
-                xPos = -200; // Swipe left away
-                opacity = 0;
-                zIndex = 0;
-              } else if (isActive) {
-                xPos = 0;
-                scale = 1;
-                zIndex = 10;
-              } else if (isUpcoming) {
-                xPos = diff * 40; // Shift to the right to show the edge
-                scale = 1 - (diff * 0.05); // Scale down the further back it is
-                zIndex = 10 - diff;
-                opacity = 1 - (diff * 0.1); // Slightly fade items further in the pile
-              }
-
-              return (
-                <motion.div
-                  key={idx}
-                  onClick={() => {
-                    if (isUpcoming) setActiveIndex(idx);
-                  }}
-                  initial={false}
-                  animate={{
-                    x: xPos,
-                    scale: scale,
-                    zIndex: zIndex,
-                    opacity: opacity,
-                    backgroundColor: isActive ? '#2563eb' : '#f8fafc', // blue-600 vs slate-50
-                    borderColor: isActive ? '#2563eb' : '#f1f5f9', // blue-600 vs slate-100
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className={`absolute inset-0 rounded-3xl p-8 md:p-10 flex flex-col justify-end overflow-hidden border ${
-                    isActive ? 'shadow-2xl shadow-blue-600/20 cursor-default' : 'shadow-xl shadow-slate-900/5 hover:bg-slate-100 cursor-pointer'
-                  }`}
-                  style={{
-                    transformOrigin: 'left center'
-                  }}
-                >
-                  <motion.div className="w-full h-full flex flex-col justify-end">
-                    <motion.h3 
-                      animate={{ color: isActive ? '#ffffff' : '#94a3b8' }}
-                      className="font-bold leading-tight mb-4 text-xl md:text-2xl"
-                    >
-                      {faq.question}
-                    </motion.h3>
-                    
-                    <div className="overflow-hidden">
-                      <motion.div
-                        initial={false}
-                        animate={{ 
-                          height: isActive ? 'auto' : 0,
-                          opacity: isActive ? 1 : 0,
-                          y: isActive ? 0 : 20
-                        }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <p className="text-blue-100 text-sm md:text-base leading-relaxed pt-2">
-                          {faq.answer}
-                        </p>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-
-      </div>
-    </section>
-  );
-};
-
-export default FAQ;
-```
-
-## Fichier : src/components/Footer.jsx
-```jsx
-import React from 'react';
-import { Phone, Mail, MapPin, Car } from 'lucide-react';
-
-const Footer = () => {
-  return (
-    <footer className="bg-slate-950 text-slate-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
-          
-          {/* Brand */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-primary text-white p-2 rounded-lg">
-                <Car size={24} />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-white">
-                DameDrive
-              </span>
-            </div>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              Premium driving instruction tailored for your success. Building safe, confident, and defensive drivers for life.
-            </p>
-            <div className="flex space-x-4">
-              <a href="https://instagram.com/DameDriveOfficial" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
-                IG
-              </a>
-              <a href="https://facebook.com/DameDriveCanada" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
-                FB
-              </a>
-              <a href="https://wa.me/221781582740" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
-                WA
-              </a>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-white font-bold mb-6">Quick Links</h4>
-            <ul className="space-y-4 text-sm">
-              <li><a href="/services" className="hover:text-primary transition-colors">Packages & Pricing</a></li>
-              <li><a href="/#about" className="hover:text-primary transition-colors">Meet the Instructor</a></li>
-              <li><a href="/#reviews" className="hover:text-primary transition-colors">Student Success</a></li>
-              <li><a href="/faq" className="hover:text-primary transition-colors">FAQ</a></li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="text-white font-bold mb-6">Contact Us</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-center gap-3">
-                <Phone size={16} className="text-primary" />
-                <span>+221 78 158 2740</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail size={16} className="text-primary" />
-                <span>suporttest474@gmail.com</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin size={16} className="text-primary flex-shrink-0 mt-1" />
-                <span className="leading-relaxed">Serving Calgary, Alberta & Surrounding Regions</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* CTA */}
-          <div>
-            <h4 className="text-white font-bold mb-6">Ready to start?</h4>
-            <p className="text-sm text-slate-400 mb-4">Book your first lesson today and take the first step towards independence.</p>
-            <a href="#book" className="inline-block w-full text-center bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition-colors">
-              Book Online Now
-            </a>
-          </div>
-
-        </div>
-
-        <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} DameDrive. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
-export default Footer;
 ```
 
 ## Fichier : src/components/Navbar.jsx
@@ -1161,360 +494,681 @@ const Navbar = () => {
 export default Navbar;
 ```
 
-## Fichier : src/components/Booking.jsx
+## Fichier : src/components/Footer.jsx
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { Send, Clock, User, Phone, Mail, X, CreditCard, CheckCircle2, Plus, Trash2, Calendar, Loader2, KeyRound } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
-import confetti from 'canvas-confetti';
-import { supabase } from '../supabaseClient';
+import React from 'react';
+import { Phone, Mail, MapPin, Car } from 'lucide-react';
 
-const PRICES = {
-  beginner: { name: 'Beginner Package', price: 50 },
-  comprehensive: { name: 'Comprehensive Plan', price: 45 },
-  roadtest: { name: 'Road Test Ready', price: 40 },
-};
-
-const Booking = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    service: 'comprehensive',
-    message: '',
-    sessions: [{ date: '', hours: '2' }]
-  });
-
-  useEffect(() => {
-    if (location.hash === '#book') {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-      setIsSubmitted(false);
-    }
-  }, [location.hash]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-      // Robust reset whenever modal closes
-      setTimeout(() => {
-        setIsSubmitted(false);
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          service: 'comprehensive',
-          message: '',
-          sessions: [{ date: '', hours: '2' }]
-        });
-      }, 300);
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen]);
-
-    const closeModal = () => {
-    setIsOpen(false);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        service: 'comprehensive',
-        message: '',
-        sessions: [{ date: '', hours: '2' }]
-      });
-    }, 300);
-    navigate(location.pathname + location.search, { replace: true });
-  };
-
-  const handleSessionChange = (index, field, value) => {
-    const newSessions = [...formData.sessions];
-    newSessions[index][field] = value;
-    setFormData({ ...formData, sessions: newSessions });
-  };
-
-  const addSession = () => {
-    setFormData({ ...formData, sessions: [...formData.sessions, { date: '', hours: '2' }] });
-  };
-
-  const removeSession = (index) => {
-    if (formData.sessions.length > 1) {
-      const newSessions = formData.sessions.filter((_, i) => i !== index);
-      setFormData({ ...formData, sessions: newSessions });
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const estimatedHours = formData.sessions.reduce((sum, session) => sum + (parseInt(session.hours) || 0), 0);
-  const basePrice = PRICES[formData.service].price;
-  const totalAmount = basePrice * estimatedHours;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-
-    const sessionsList = formData.sessions.map((s, i) => `Session ${i + 1}: ${s.date} (${s.hours} Hours)`).join('\n');
-    
-    try {
-      if (import.meta.env.VITE_SUPABASE_URL) {
-        await supabase.from('bookings').insert([{
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          package: PRICES[formData.service].name,
-          estimated_hours: estimatedHours,
-          total_amount: `$${totalAmount}`,
-          message: formData.message,
-          sessions: sessionsList,
-          status: 'pending'
-        }]);
-      }
-
-      const payload = {
-        access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "e63b90a6-896e-47d7-a926-e5987e56e515",
-        subject: `New Booking Request from ${formData.name}`,
-        from_name: "DameDrive Booking",
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        package: PRICES[formData.service].name,
-        estimated_hours: estimatedHours,
-        total_amount: `$${totalAmount}`,
-        message: formData.message,
-        sessions: sessionsList
-      };
-
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
-
-      if (result.success) {
-        confetti({ particleCount: 200, spread: 120, origin: { y: 0.4 }, zIndex: 9999, colors: ['#0f172a', '#3b82f6', '#ffffff'] });
-        setIsSubmitted(true);
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (err) {
-      setError(err.message || "Network error. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+const Footer = () => {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeModal}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-          ></motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className={`relative w-full bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col transition-all duration-300 ${isSubmitted ? 'max-w-md' : 'max-w-4xl'}`}
-          >
-            {!isSubmitted && (
-              <div className="flex items-center justify-between p-5 md:p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-slate-900">Secure Your Spot</h3>
-                  <p className="text-xs md:text-sm text-slate-500 mt-1">Select your dates and hours below to build your schedule.</p>
-                </div>
-                <button
-                  onClick={closeModal}
-                  className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-300 transition-colors"
-                >
-                  <X size={20} />
-                </button>
+    <footer className="bg-slate-950 text-slate-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="bg-primary text-white p-2 rounded-lg">
+                <Car size={24} />
               </div>
-            )}
-
-            <div className={`overflow-y-auto ${!isSubmitted ? 'p-5 md:p-8' : 'p-8'}`}>
-              {!isSubmitted ? (
-                <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
-                  <form id="booking-form" onSubmit={handleSubmit} className="space-y-4 md:space-y-5 flex-grow">
-                    {error && (
-                      <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-100">
-                        {error}
-                      </div>
-                    )}
-                    <div className="grid sm:grid-cols-2 gap-4 md:gap-5">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
-                        <div className="relative">
-                          <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full pl-9 pr-3 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm" placeholder="John Doe" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
-                        <div className="relative">
-                          <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full pl-9 pr-3 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm" placeholder="+221 78 158 27 40" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4 md:gap-5">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
-                        <div className="relative">
-                          <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full pl-9 pr-3 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm" placeholder="john@example.com" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Select Package</label>
-                        <select name="service" value={formData.service} onChange={handleChange} className="w-full px-3 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm font-medium">
-                          <option value="beginner">Beginner Package ($50/hr)</option>
-                          <option value="comprehensive">Comprehensive Plan ($45/hr)</option>
-                          <option value="roadtest">Road Test Ready ($40/hr)</option>
-                        </select>
-                      </div>
-                    </div>
-                    <hr className="border-slate-100 my-6" />
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="block text-sm font-bold text-slate-900">Schedule Your Sessions</label>
-                        <span className="text-xs text-slate-500 font-medium">{formData.sessions.length} Session(s)</span>
-                      </div>
-                      <div className="space-y-3">
-                        <AnimatePresence>
-                          {formData.sessions.map((session, index) => (
-                            <motion.div key={index} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-start sm:items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 flex-col sm:flex-row">
-                              <div className="relative flex-grow w-full sm:w-auto">
-                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                <input required type="date" value={session.date} onChange={(e) => handleSessionChange(index, 'date', e.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm shadow-sm" />
-                              </div>
-                              <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <div className="relative flex-grow">
-                                  <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                  <select value={session.hours} onChange={(e) => handleSessionChange(index, 'hours', e.target.value)} className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm font-medium shadow-sm appearance-none">
-                                    <option value="1">1 Hour</option>
-                                    <option value="2">2 Hours</option>
-                                    <option value="3">3 Hours</option>
-                                    <option value="4">4 Hours</option>
-                                  </select>
-                                </div>
-                                {formData.sessions.length > 1 && (
-                                  <button type="button" onClick={() => removeSession(index)} className="w-9 h-9 shrink-0 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors">
-                                    <Trash2 size={16} />
-                                  </button>
-                                )}
-                              </div>
-                            </motion.div>
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                      <button type="button" onClick={addSession} className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 rounded-xl text-sm font-bold transition-all">
-                        <Plus size={16} />
-                        Add Another Session
-                      </button>
-                    </div>
-                    <hr className="border-slate-100 my-6" />
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Specific Goals or Notes</label>
-                      <textarea name="message" value={formData.message} onChange={handleChange} rows="2" className="w-full px-3 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/50 text-sm resize-none" placeholder="Tell us about your driving experience or specific goals..."></textarea>
-                    </div>
-                  </form>
-                  <div className="lg:w-80 shrink-0">
-                    <div className="bg-slate-900 rounded-2xl p-6 text-white sticky top-0 shadow-xl border border-slate-800">
-                      <h4 className="font-bold text-sm mb-4 flex items-center gap-2">
-                        <CreditCard size={18} className="text-primary" />
-                        Booking Summary
-                      </h4>
-
-                      <div className="space-y-3 text-sm border-b border-slate-700 pb-5 mb-5">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Package:</span>
-                          <span className="font-medium text-right">{PRICES[formData.service].name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Hourly Rate:</span>
-                          <span className="font-medium">${basePrice}</span>
-                        </div>
-                        <div className="flex justify-between items-start">
-                          <span className="text-slate-400">Schedule:</span>
-                          <div className="text-right flex flex-col items-end">
-                            <span className="font-medium text-primary-light bg-primary/20 px-2 py-0.5 rounded text-xs mb-1">
-                              {formData.sessions.length} {formData.sessions.length === 1 ? 'Session' : 'Sessions'}
-                            </span>
-                            <span className="font-bold">{estimatedHours} Total Hours</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-end mb-6">
-                        <span className="text-slate-400 text-sm">Estimated Total</span>
-                        <span className="text-3xl font-extrabold text-white">${totalAmount}</span>
-                      </div>
-
-                      <button
-                        form="booking-form" type="submit"
-                        disabled={isSubmitting}
-                        className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark disabled:bg-primary/70 text-white text-base font-bold py-4 rounded-xl transition-all active:scale-95 shadow-md shadow-primary/30"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <Send size={18} />
-                        )}
-                        {isSubmitting ? 'Processing...' : 'Complete Booking'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center text-center py-6">
-                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 shadow-sm border-8 border-green-50">
-                    <CheckCircle2 size={32} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Booking Confirmed!</h3>
-                  <p className="text-sm text-slate-600 mb-8 leading-relaxed max-w-sm">
-                    Thank you, <strong className="text-slate-900">{formData.name}</strong>! Your email has been verified and your request has been securely submitted. 
-                    We will contact you shortly to confirm your schedule.
-                  </p>
-
-                  <button
-                    onClick={closeModal}
-                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-bold py-3.5 rounded-xl shadow-sm transition-colors"
-                  >
-                    Got it, thanks!
-                  </button>
-                </motion.div>
-              )}
+              <span className="text-xl font-bold tracking-tight text-white">
+                DameDrive
+              </span>
             </div>
-          </motion.div>
+            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+              Premium driving instruction tailored for your success. Building safe, confident, and defensive drivers for life.
+            </p>
+            <div className="flex space-x-4">
+              <a href="https://instagram.com/DameDriveOfficial" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
+                IG
+              </a>
+              <a href="https://facebook.com/DameDriveCanada" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
+                FB
+              </a>
+              <a href="https://wa.me/221781582740" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-primary hover:text-white transition-colors text-sm font-bold">
+                WA
+              </a>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-white font-bold mb-6">Quick Links</h4>
+            <ul className="space-y-4 text-sm">
+              <li><a href="/services" className="hover:text-primary transition-colors">Packages & Pricing</a></li>
+              <li><a href="/#about" className="hover:text-primary transition-colors">Meet the Instructor</a></li>
+              <li><a href="/#reviews" className="hover:text-primary transition-colors">Student Success</a></li>
+              <li><a href="/faq" className="hover:text-primary transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-white font-bold mb-6">Contact Us</h4>
+            <ul className="space-y-4 text-sm">
+              <li className="flex items-center gap-3">
+                <Phone size={16} className="text-primary" />
+                <span>+221 78 158 2740</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail size={16} className="text-primary" />
+                <span>suporttest474@gmail.com</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <MapPin size={16} className="text-primary flex-shrink-0 mt-1" />
+                <span className="leading-relaxed">Serving Calgary, Alberta & Surrounding Regions</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* CTA */}
+          <div>
+            <h4 className="text-white font-bold mb-6">Ready to start?</h4>
+            <p className="text-sm text-slate-400 mb-4">Book your first lesson today and take the first step towards independence.</p>
+            <a href="#book" className="inline-block w-full text-center bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Book Online Now
+            </a>
+          </div>
+
         </div>
-      )}
-    </AnimatePresence>
+
+        <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+          <p>&copy; {new Date().getFullYear()} DameDrive. All rights reserved.</p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 };
 
-export default Booking;
+export default Footer;
 ```
 
+## Fichier : src/components/Services.jsx
+```jsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Key, Route, Navigation, FileCheck, Snowflake, MapPin, ArrowRight } from 'lucide-react';
+
+const Services = () => {
+  const navigate = useNavigate();
+  const services = [
+    {
+      id: "beginner-lessons",
+      title: "Beginner Lessons",
+      desc: "Step-by-step curriculum for complete beginners.",
+      icon: <Key className="w-5 h-5" />,
+      image: "/images/beginner_lessons_hero_1785788722912.png"
+    },
+    {
+      id: "road-test-prep",
+      title: "Road Test Preparation",
+      desc: "Mock tests and route practice to guarantee passing.",
+      icon: <FileCheck className="w-5 h-5" />,
+      image: "/images/road_test_prep_hero_1785788750511.png"
+    },
+    {
+      id: "highway-driving",
+      title: "Highway Driving",
+      desc: "Build confidence merging and navigating highways.",
+      icon: <Navigation className="w-5 h-5" />,
+      image: "/images/highway_driving_hero_1785788797918.png"
+    },
+    {
+      id: "parking-practice",
+      title: "Parking Practice",
+      desc: "Master parallel and reverse parking with ease.",
+      icon: <MapPin className="w-5 h-5" />,
+      image: "/images/parking_practice_hero_1785788810001.png"
+    },
+    {
+      id: "winter-driving",
+      title: "Winter Driving",
+      desc: "Essential skills for safe handling in snow and ice.",
+      icon: <Snowflake className="w-5 h-5" />,
+      image: "/images/winter_driving_hero_1785788828096.png"
+    },
+    {
+      id: "refresher-courses",
+      title: "Refresher Courses",
+      desc: "Brush up your skills and adapt to Canadian rules.",
+      icon: <Route className="w-5 h-5" />,
+      image: "/images/refresher_courses_hero_1785788852301.png"
+    }
+  ];
+
+  return (
+    <section id="services" className="py-12 md:py-20 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-100 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Our Packages</h2>
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">Tailored Driving Lessons</h3>
+            <p className="text-slate-500 text-base md:text-lg font-light leading-relaxed">
+              Whether you're starting from scratch or just need a quick refresher before your road test, we have a plan for you.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+          {services.map((service, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1, duration: 0.5 }}
+              onClick={() => navigate(`/services/${service.id}`)}
+              className="group flex flex-col p-4 rounded-3xl hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-transparent hover:border-slate-100 shadow-sm hover:shadow-xl"
+            >
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 relative shadow-md">
+                <img 
+                  src={service.image} 
+                  alt={service.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/0 transition-colors duration-300"></div>
+                <div className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm text-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                  {service.icon}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors flex-1 min-w-0 pr-2">
+                  {service.title}
+                </h4>
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300 shrink-0">
+                  <ArrowRight size={16} />
+                </div>
+              </div>
+              <p className="text-slate-500 text-sm leading-relaxed">{service.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Services;
+```
+
+## Fichier : src/components/HowItWorks.jsx
+```jsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { CalendarCheck, Route, Car } from 'lucide-react';
+
+const HowItWorks = () => {
+  const steps = [
+    {
+      num: "01",
+      title: "Book Your Slot",
+      desc: "Choose a time that works for you using our simple online booking system.",
+      icon: <CalendarCheck className="w-8 h-8 text-primary" />
+    },
+    {
+      num: "02",
+      title: "Hit the Road",
+      desc: "Learn from patient, certified instructors in our modern dual-controlled vehicles.",
+      icon: <Car className="w-8 h-8 text-primary" />
+    },
+    {
+      num: "03",
+      title: "Get Licensed",
+      desc: "Pass your road test with confidence and become a safe driver for life.",
+      icon: <Route className="w-8 h-8 text-primary" />
+    }
+  ];
+
+  return (
+    <section id="how-it-works" className="py-12 md:py-16 bg-white text-slate-900 relative overflow-hidden">
+      {/* Decorative dots pattern (light theme) */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 border-b border-slate-100 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Simple Process</h2>
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-0 tracking-tight">Your Journey to Independence</h3>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-12 lg:gap-8">
+          {steps.map((step, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.2 }}
+              className="relative group"
+            >
+              {/* Massive background number */}
+              <div className="text-8xl md:text-9xl font-black text-slate-100 absolute -top-12 -left-4 md:-left-8 -z-10 transition-transform group-hover:-translate-y-2">
+                {step.num}
+              </div>
+              
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-primary/20">
+                {step.icon}
+              </div>
+              
+              <h4 className="text-2xl font-bold mb-4">{step.title}</h4>
+              <p className="text-slate-600 leading-relaxed text-lg">{step.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HowItWorks;
+```
+
+## Fichier : src/components/Testimonials.jsx
+```jsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
+
+const Testimonials = () => {
+  const reviews = [
+    {
+      name: "Sarah Jenkins",
+      role: "First-time Driver",
+      content: "Alex was incredibly patient. I was terrified of highway driving, but he broke it down step by step. Passed my G2 on the first try!",
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200"
+    },
+    {
+      name: "David Chen",
+      role: "New Immigrant",
+      content: "Adapting to winter driving in Canada was daunting. The winter driving package gave me exactly the confidence I needed to drive safely.",
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200"
+    },
+    {
+      name: "Emma Thompson",
+      role: "Road Test Prep",
+      content: "The mock tests were identical to the real thing. When exam day came, I felt like I had already done it a hundred times.",
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
+    }
+  ];
+
+  return (
+    <section id="reviews" className="py-12 md:py-16 bg-primary text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/20 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-accent uppercase tracking-[0.2em] mb-3">Testimonials</h2>
+            <h3 className="text-3xl md:text-4xl font-black mb-0 tracking-tight text-white">Student Success Stories</h3>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {reviews.map((review, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="bg-white text-slate-900 p-5 rounded-xl shadow-sm relative flex flex-col"
+            >
+              <div className="flex gap-1 mb-2">
+                {[...Array(review.rating)].map((_, i) => (
+                  <Star key={i} className="w-3 h-3 fill-accent text-accent" />
+                ))}
+              </div>
+              <p className="text-slate-700 mb-4 flex-grow leading-snug text-sm italic">"{review.content}"</p>
+              
+              <div className="flex items-center gap-3 mt-auto">
+                <img 
+                  src={review.image} 
+                  alt={review.name} 
+                  loading="lazy"
+                  decoding="async"
+                  className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                />
+                <div>
+                  <div className="font-bold text-sm text-slate-900">{review.name}</div>
+                  <div className="text-xs text-slate-500">{review.role}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Testimonials;
+```
+
+## Fichier : src/components/Pricing.jsx
+```jsx
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
+
+const Pricing = () => {
+  const [expandedPackage, setExpandedPackage] = useState(null);
+
+  const plans = [
+    {
+      name: "Beginner Package",
+      price: "50",
+      description: "Quick refresher or get comfortable behind the wheel.",
+      marketingText: "Tailored for absolute beginners and nervous drivers. Master vehicle control and basic road awareness in a low-pressure environment.",
+      features: [
+        "2 Hours Minimum",
+        "Free Pick-up & Drop-off",
+        "Basic Maneuvers",
+        "Dual-control Vehicle"
+      ],
+      popular: false
+    },
+    {
+      name: "Comprehensive Plan",
+      price: "45",
+      description: "Our most popular package for students preparing for their test.",
+      marketingText: "Our signature curriculum. Dive deep into complex traffic scenarios, highway driving, and parallel parking to become fully equipped for everyday driving.",
+      features: [
+        "6 Hours Minimum",
+        "Free Pick-up & Drop-off",
+        "Highway & City Driving",
+        "Mock Road Test",
+        "Priority Scheduling"
+      ],
+      popular: true
+    },
+    {
+      name: "Road Test Ready",
+      price: "40",
+      description: "Complete journey from beginner to licensed driver.",
+      marketingText: "The ultimate solution guaranteeing maximum supervised road time. Includes night/winter driving and use of our car for your actual road test.",
+      features: [
+        "10 Hours Minimum",
+        "Free Pick-up & Drop-off",
+        "Winter & Night Driving",
+        "Use of Car for Road Test",
+        "Guaranteed Pass Support"
+      ],
+      popular: false
+    }
+  ];
+
+  return (
+    <section className="py-12 md:py-20 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-slate-200 pb-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">Pricing</h2>
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-0 tracking-tight">Choose Your Journey</h3>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {plans.map((plan, idx) => (
+            <div
+              key={idx}
+              className={`bg-white rounded-3xl p-5 md:p-6 border shadow-xl relative flex flex-col transition-all ${
+                plan.popular ? 'border-primary ring-2 ring-primary/20 lg:-translate-y-2' : 'border-slate-100'
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider py-1 px-4 rounded-full shadow-md">
+                  Most Popular
+                </div>
+              )}
+              
+              <h4 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h4>
+              <p className="text-slate-500 text-sm mb-6 min-h-[40px] leading-relaxed">{plan.description}</p>
+              
+              <div className="mb-6">
+                <span className="text-3xl font-black text-slate-900">${plan.price}</span>
+                <span className="text-slate-500 font-medium text-sm">/Hour</span>
+              </div>
+
+              <div className="mb-6 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
+                <button 
+                  onClick={() => setExpandedPackage(expandedPackage === idx ? null : idx)}
+                  className={`w-full flex items-center justify-between p-3 text-sm font-bold transition-colors ${
+                    expandedPackage === idx 
+                    ? 'bg-primary text-white' 
+                    : 'bg-primary/5 text-primary hover:bg-primary/10'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Info size={16} />
+                    WHY CHOOSE THIS?
+                  </span>
+                  {expandedPackage === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                
+                <AnimatePresence>
+                  {expandedPackage === idx && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden bg-slate-50"
+                    >
+                      <p className="p-4 text-sm text-slate-700 leading-relaxed border-t border-slate-100">
+                        {plan.marketingText}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              <ul className="space-y-4 mb-8 flex-grow">
+                {plan.features.map((feature, fIdx) => (
+                  <li key={fIdx} className="flex items-start gap-3 text-slate-700">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="text-sm font-medium">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <a 
+                href="/#book"
+                className={`w-full py-4 rounded-xl text-base text-center font-bold transition-all shadow-md mt-auto ${
+                  plan.popular 
+                    ? 'bg-primary hover:bg-primary-dark text-white shadow-primary/30 hover:-translate-y-1' 
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-900 hover:-translate-y-1'
+                }`}
+              >
+                Book This Package
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Pricing;
+```
+
+## Fichier : src/components/FAQ.jsx
+```jsx
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+
+const FAQ = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const faqs = [
+    {
+      question: "How long is each driving lesson?",
+      answer: "A standard lesson is 60 minutes long. However, we also offer 90-minute and 120-minute sessions for students who want intensive highway practice or mock road tests."
+    },
+    {
+      question: "Can I use the instructor's car for my road test?",
+      answer: "Yes! If you book our Road Test Package, you can use the same dual-controlled vehicle you trained in for your official road test, which greatly increases pass rates."
+    },
+    {
+      question: "Do you offer pick-up and drop-off?",
+      answer: "Absolutely. We provide free pick-up and drop-off from your home, school, or workplace within our service area."
+    },
+    {
+      question: "What is your cancellation policy?",
+      answer: "We require 24 hours notice for any cancellations or rescheduling. Cancellations made with less than 24 hours notice may be subject to a cancellation fee."
+    },
+    {
+      question: "How many lessons will I need to pass?",
+      answer: "This varies greatly depending on your prior experience and comfort level. On average, complete beginners require between 10 to 15 hours of instruction, while experienced drivers may only need 2-3 hours of test preparation."
+    }
+  ];
+
+  const handleNext = () => {
+    setActiveIndex((prev) => Math.min(prev + 1, faqs.length - 1));
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  return (
+    <section id="faq" className="py-12 md:py-16 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Split Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+          <div className="max-w-2xl">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+              Frequently<br />
+              Asked <span className="text-primary">Questions</span>
+            </h2>
+          </div>
+          
+          <div className="lg:w-1/3 flex flex-col items-start lg:items-end text-left lg:text-right">
+            <p className="text-slate-500 text-lg mb-6 leading-relaxed max-w-sm">
+              Find answers to common questions about our driving lessons, test prep, and scheduling policies.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={handlePrev}
+                disabled={activeIndex === 0}
+                className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-400 transition-colors bg-white hover:bg-slate-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Previous question"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <button 
+                onClick={handleNext}
+                disabled={activeIndex === faqs.length - 1}
+                className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Next question"
+              >
+                <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stacked Cards Deck */}
+        <div className="relative h-[450px] w-full max-w-[400px] md:max-w-[500px] lg:max-w-[600px] mx-auto lg:mx-0">
+          <AnimatePresence>
+            {faqs.map((faq, idx) => {
+              const diff = idx - activeIndex;
+              const isDismissed = diff < 0;
+              const isActive = diff === 0;
+              const isUpcoming = diff > 0;
+              
+              // Only render cards that are active, upcoming (up to 3 in the pile), or just dismissed (for exit animation)
+              if (diff > 3 || diff < -1) return null;
+
+              // Calculate physics for the pile
+              let xPos = 0;
+              let scale = 1;
+              let zIndex = 10;
+              let opacity = 1;
+
+              if (isDismissed) {
+                xPos = -200; // Swipe left away
+                opacity = 0;
+                zIndex = 0;
+              } else if (isActive) {
+                xPos = 0;
+                scale = 1;
+                zIndex = 10;
+              } else if (isUpcoming) {
+                xPos = diff * 40; // Shift to the right to show the edge
+                scale = 1 - (diff * 0.05); // Scale down the further back it is
+                zIndex = 10 - diff;
+                opacity = 1 - (diff * 0.1); // Slightly fade items further in the pile
+              }
+
+              return (
+                <motion.div
+                  key={idx}
+                  onClick={() => {
+                    if (isUpcoming) setActiveIndex(idx);
+                  }}
+                  initial={false}
+                  animate={{
+                    x: xPos,
+                    scale: scale,
+                    zIndex: zIndex,
+                    opacity: opacity,
+                    backgroundColor: isActive ? '#2563eb' : '#f8fafc', // blue-600 vs slate-50
+                    borderColor: isActive ? '#2563eb' : '#f1f5f9', // blue-600 vs slate-100
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className={`absolute inset-0 rounded-3xl p-8 md:p-10 flex flex-col justify-end overflow-hidden border ${
+                    isActive ? 'shadow-2xl shadow-blue-600/20 cursor-default' : 'shadow-xl shadow-slate-900/5 hover:bg-slate-100 cursor-pointer'
+                  }`}
+                  style={{
+                    transformOrigin: 'left center'
+                  }}
+                >
+                  <motion.div className="w-full h-full flex flex-col justify-end">
+                    <motion.h3 
+                      animate={{ color: isActive ? '#ffffff' : '#94a3b8' }}
+                      className="font-bold leading-tight mb-4 text-xl md:text-2xl"
+                    >
+                      {faq.question}
+                    </motion.h3>
+                    
+                    <div className="overflow-hidden">
+                      <motion.div
+                        initial={false}
+                        animate={{ 
+                          height: isActive ? 'auto' : 0,
+                          opacity: isActive ? 1 : 0,
+                          y: isActive ? 0 : 20
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <p className="text-blue-100 text-sm md:text-base leading-relaxed pt-2">
+                          {faq.answer}
+                        </p>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+export default FAQ;
+```

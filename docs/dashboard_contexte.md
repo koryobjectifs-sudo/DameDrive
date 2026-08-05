@@ -1,52 +1,77 @@
-# Contexte et Codebase : Dashboard & Backend
-Ce fichier contient l'historique de la refonte du Dashboard, le système d'authentification, les configurations de rôles, et l'intégration Supabase/EmailJS.
+# Contexte et Codebase : Dashboard
+Ce fichier contient tout l'historique et le code source des composants constituant le Dashboard de DameDrive.
 
-## Fichier : src/pages/DashboardRouter.jsx
+## Fichier : src/pages/dashboards/AdminDashboard.jsx
 ```jsx
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
-import { ROLES } from '../config/roles';
+import { useAuth } from '../../context/AuthContext';
+import { ROLES } from '../../config/roles';
+import { Settings, Shield } from 'lucide-react';
 
-// Dashboards
-import OwnerDashboard from './dashboards/OwnerDashboard';
-import ManagerDashboard from './dashboards/ManagerDashboard';
-import SecretaryDashboard from './dashboards/SecretaryDashboard';
-import InstructorDashboard from './dashboards/InstructorDashboard';
-import AccountantDashboard from './dashboards/AccountantDashboard';
-import StandardDashboard from './dashboards/StandardDashboard';
+const AdminDashboard = () => {
+  const { role, setRoleOverride } = useAuth();
 
-const DashboardRouter = () => {
-  const { role } = useAuth();
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-4 bg-purple-50 border border-purple-200 p-3 rounded-xl flex items-center justify-between">
+          <div className="flex items-center">
+            <Settings size={16} className="text-purple-600 mr-2" />
+            <span className="text-sm font-bold text-purple-800">RBAC Role Switcher:</span>
+          </div>
+          <select 
+            value={role} 
+            onChange={(e) => setRoleOverride(e.target.value)}
+            className="bg-white border border-purple-300 rounded-lg px-3 py-1.5 text-sm font-bold text-purple-700"
+          >
+            {Object.values(ROLES).map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
 
-  switch (role) {
-    case ROLES.OWNER:
-      return <OwnerDashboard />;
-    case ROLES.MANAGER:
-      return <ManagerDashboard />;
-    case ROLES.SECRETARY:
-      return <SecretaryDashboard />;
-    case ROLES.INSTRUCTOR:
-      return <InstructorDashboard />;
-    case ROLES.ACCOUNTANT:
-      return <AccountantDashboard />;
-    case ROLES.STANDARD_USER:
-    default:
-      return <StandardDashboard />;
-  }
+        <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[60vh]">
+          <Shield size={64} className="text-indigo-500 mb-6" />
+          <h1 className="text-4xl font-black tracking-tight text-slate-800 mb-4">Administrator Dashboard</h1>
+          <p className="text-lg text-slate-500 font-medium max-w-lg mx-auto">
+            This dashboard is specifically tailored for Daily Platform Operations. You have access to manage customers, bookings, and schools.
+          </p>
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 className="font-bold text-slate-700">Today's Bookings</h3>
+              <p className="text-2xl font-black text-indigo-600">14</p>
+            </div>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 className="font-bold text-slate-700">Pending</h3>
+              <p className="text-2xl font-black text-amber-500">3</p>
+            </div>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 className="font-bold text-slate-700">New Customers</h3>
+              <p className="text-2xl font-black text-emerald-500">+8</p>
+            </div>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 className="font-bold text-slate-700">System Alerts</h3>
+              <p className="text-2xl font-black text-slate-400">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default DashboardRouter;
+export default AdminDashboard;
 ```
 
 ## Fichier : src/pages/dashboards/OwnerDashboard.jsx
 ```jsx
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
-import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone, TrendingUp, CalendarDays, ChevronUp, Camera, X, Download, PlusCircle, Activity, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone, TrendingUp, CalendarDays, ChevronUp, ChevronLeft, ChevronRight, Filter, Camera, X, Download, PlusCircle, Activity, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Lock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import SettingsView from '../../components/settings/SettingsView';
+import StudentCRM from '../../components/crm/StudentCRM';
+import FinanceDashboard from '../../components/finance/FinanceDashboard';
 const mockSparklineData = [{v: 40}, {v: 30}, {v: 45}, {v: 50}, {v: 40}, {v: 65}, {v: 74}];
 const mockSparklineData2 = [{v: 60}, {v: 50}, {v: 55}, {v: 70}, {v: 60}, {v: 80}, {v: 96}];
 const mockSparklineData3 = [{v: 20}, {v: 25}, {v: 22}, {v: 30}, {v: 28}, {v: 35}, {v: 30}];
@@ -55,7 +80,8 @@ const mockSparklineData4 = [{v: 80}, {v: 75}, {v: 85}, {v: 90}, {v: 85}, {v: 95}
 const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
 
 import { useAuth } from '../../context/AuthContext';
-import { ROLES } from '../../config/roles';
+import { ROLES, PERMISSIONS } from '../../config/roles';
+import PermissionGuard from '../../components/PermissionGuard';
 
 const OwnerDashboard = () => {
   const { role, setRoleOverride } = useAuth();
@@ -78,7 +104,18 @@ const OwnerDashboard = () => {
   const [newLesson, setNewLesson] = useState({ studentEmail: '', date: '', startTime: '', endTime: '', notes: '' });
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [planningCategory, setPlanningCategory] = useState(null);
-  const [historyCategory, setHistoryCategory] = useState('Broadcasts');
+  const [historyCategory, setHistoryCategory] = useState('All Activity');
+  const [calendarView, setCalendarView] = useState('Jour');
+  const [calendarDate, setCalendarDate] = useState(new Date('2026-08-04'));
+
+  const MOCK_AUDIT_LOGS = [
+    { id: 1, type: 'CREATE', user: 'Jean Marie Kory SENGHOR', role: 'Administrateur', action: 'A ajouté un nouvel utilisateur', target: 'John Doe (Comptable)', date: 'Aujourd\'hui, 14:32', category: 'System & Security', color: 'emerald' },
+    { id: 2, type: 'UPDATE', user: 'Alice Smith', role: 'Manager', action: 'A modifié le planning', target: 'Session conduite - Marc Leblanc', date: 'Aujourd\'hui, 10:15', category: 'Planning', color: 'blue' },
+    { id: 3, type: 'BROADCAST', user: 'Jean Marie Kory SENGHOR', role: 'Administrateur', action: 'A envoyé une communication', target: 'Tous les étudiants (Tips Hiver)', date: 'Hier, 09:41', category: 'Communications', color: 'indigo' },
+    { id: 4, type: 'UPDATE', user: 'John Doe', role: 'Comptable', action: 'A mis à jour le dossier étudiant', target: 'Sophie Martin (Paiement validé)', date: '2 Août 2026, 16:20', category: 'Students & CRM', color: 'blue' },
+    { id: 5, type: 'DELETE', user: 'Alice Smith', role: 'Manager', action: 'A annulé un cours', target: 'Session conduite - Kevin D.', date: '1 Août 2026, 11:05', category: 'Planning', color: 'rose' },
+    { id: 6, type: 'SYSTEM', user: 'Système', role: 'Automatique', action: 'Extraction de données générée', target: 'Rapport Financier Mensuel', date: '1 Août 2026, 01:00', category: 'System & Security', color: 'slate' }
+  ];
   const [newMemberRole, setNewMemberRole] = useState('Assistant');
   const [teamMembers, setTeamMembers] = useState([
     { email: 'suporttest474@gmail.com', role: 'Admin', access: 'Full Access (Earnings, Settings)' },
@@ -342,6 +379,35 @@ const OwnerDashboard = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  const handleExportCSV = () => {
+    if (filteredBookings.length === 0) return;
+    const headers = ['Nom', 'Email', 'Date', 'Forfait', 'Montant', 'Statut'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredBookings.map(b => {
+        const meta = studentMeta[b.email] || {};
+        const status = meta.payment === 'Pending' ? 'En attente' : 'Payé';
+        const amount = b.total_amount ? String(b.total_amount).replace(/[^0-9.-]+/g,"") : 0;
+        return `"${b.name}","${b.email}","${new Date(b.created_at).toLocaleDateString()}","${b.package || 'Standard'}","${amount}","${status}"`;
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `bookings_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    showToast('Export CSV réussi !', 'success');
+    setQuickActionModal({ isOpen: false, action: null });
+  };
+
+  const handleSendReminders = () => {
+    const pendingCount = bookings.filter(b => (studentMeta[b.email]?.payment || 'Pending') === 'Pending').length;
+    showToast(`${pendingCount} rappels envoyés avec succès !`, 'success');
+    setQuickActionModal({ isOpen: false, action: null });
+  };
+
   const handleScheduleLesson = async (e) => {
     e.preventDefault();
     try {
@@ -362,15 +428,19 @@ const OwnerDashboard = () => {
       
       if (error) throw error;
 
-      // Send automated email to the student
-      const emailMessage = `Hello ${student.name},\n\nYour driving lesson has been successfully scheduled!\n\n📅 Date: ${newLesson.date}\n⏰ Time: ${newLesson.startTime} - ${newLesson.endTime}\n📝 Notes: ${newLesson.notes || 'None'}\n\nPlease make sure to arrive on time. If you need to cancel or reschedule, please reply to this email directly.\n\nBest regards,\nThe DameDrive Team`;
-      
-      showToast('Scheduling lesson and sending email...', 'info');
-      await sendEmailJSNotification(student.email, "Your Driving Lesson is Scheduled! 🚗", emailMessage);
-
+      // UX Improvement: Close modal and reset form instantly
       setShowScheduleModal(false);
       setNewLesson({ studentEmail: '', date: '', startTime: '', endTime: '', notes: '' });
-      fetchBookings(); // Refreshes everything including lessons
+      showToast('Session planifiée avec succès !', 'success');
+      fetchBookings(); // Refreshes the grid
+
+      // Send automated email to the student asynchronously
+      const emailMessage = `Hello ${student.name},\n\nYour driving lesson has been successfully scheduled!\n\n📅 Date: ${newLesson.date}\n⏰ Time: ${newLesson.startTime} - ${newLesson.endTime}\n📝 Notes: ${newLesson.notes || 'None'}\n\nPlease make sure to arrive on time. If you need to cancel or reschedule, please reply to this email directly.\n\nBest regards,\nThe DameDrive Team`;
+      
+      sendEmailJSNotification(student.email, "Your Driving Lesson is Scheduled! 🚗", emailMessage)
+        .then(() => showToast("Email de confirmation envoyé à l'élève.", 'success'))
+        .catch(err => console.error("Email send failed:", err));
+        
     } catch (error) {
       showToast("Failed to schedule lesson: " + error.message, 'error');
     }
@@ -727,19 +797,23 @@ const OwnerDashboard = () => {
                       <button onClick={() => handleWhatsApp(b.phone, b.name)} className="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 font-medium text-xs rounded-lg transition-colors">
                         WhatsApp
                       </button>
-                      <select 
-                        value={b.status || 'pending'} 
-                        onChange={(e) => handleBookingAction(b.id, e.target.value)}
-                        className="px-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Mark Paid</option>
-                        <option value="completed">Completed</option>
-                        <option value="canceled">Canceled</option>
-                      </select>
-                      <button onClick={() => handleDeleteBooking(b.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-medium text-xs rounded-lg transition-colors">
-                        Delete
-                      </button>
+                      <PermissionGuard permission={PERMISSIONS.BOOKINGS_EDIT}>
+                        <select 
+                          value={b.status || 'pending'} 
+                          onChange={(e) => handleBookingAction(b.id, e.target.value)}
+                          className="px-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Mark Paid</option>
+                          <option value="completed">Completed</option>
+                          <option value="canceled">Canceled</option>
+                        </select>
+                      </PermissionGuard>
+                      <PermissionGuard permission={PERMISSIONS.BOOKINGS_CANCEL}>
+                        <button onClick={() => handleDeleteBooking(b.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-medium text-xs rounded-lg transition-colors">
+                          Delete
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>
@@ -792,35 +866,37 @@ const OwnerDashboard = () => {
         </motion.div>
 
         {/* Earnings Card */}
-        <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
-          <div className="flex justify-between items-start mb-2 z-10 relative">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
-                <DollarSign size={16} strokeWidth={2.5} />
-              </div>
-              <div>
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Gross Earnings</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-xl font-medium text-slate-800 tracking-tight leading-none">${totalEarnings}</p>
+        <PermissionGuard permission={PERMISSIONS.PAYMENTS_VIEW} showLock={true} lockMessage="Données Financières Masquées">
+          <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
+            <div className="flex justify-between items-start mb-2 z-10 relative">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+                  <DollarSign size={16} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Gross Earnings</p>
+                  <div className="flex items-baseline space-x-2">
+                    <p className="text-xl font-medium text-slate-800 tracking-tight leading-none">${totalEarnings}</p>
+                  </div>
                 </div>
               </div>
+              <HelpCircle size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />
             </div>
-            <HelpCircle size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />
-          </div>
-          <div className="flex items-end justify-between mt-auto pt-2 z-10 relative">
-            <div className="text-[10px] font-medium text-emerald-500 flex items-center whitespace-nowrap overflow-visible">
-              <DollarSign size={12} className="mr-1" />
-              ${totalBookings > 0 ? (totalEarnings / totalBookings).toFixed(0) : 0} <span className="text-slate-400 font-medium ml-1 ">avg per booking</span>
+            <div className="flex items-end justify-between mt-auto pt-2 z-10 relative">
+              <div className="text-[10px] font-medium text-emerald-500 flex items-center whitespace-nowrap overflow-visible">
+                <DollarSign size={12} className="mr-1" />
+                ${totalBookings > 0 ? (totalEarnings / totalBookings).toFixed(0) : 0} <span className="text-slate-400 font-medium ml-1 ">avg per booking</span>
+              </div>
+              <div className="w-14 h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={mockSparklineData2}>
+                    <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="w-14 h-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockSparklineData2}>
-                  <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </PermissionGuard>
 
         {/* Pending Card */}
         <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
@@ -952,25 +1028,32 @@ const OwnerDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-slate-800">Earnings Overview</h3>
+            <h3 className="text-lg font-medium text-slate-800">Revenus vs Dépenses (Évolutif)</h3>
           </div>
-          <div className="h-72 mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} tickFormatter={(val) => `$${val}`} dx={-10} />
-                <Tooltip cursor={{stroke: '#e2e8f0', strokeWidth: 2}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 600 }} formatter={(value) => [`$${value}`, ""]} />
-                <Area type="monotone" dataKey="current" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorCurrent)" activeDot={{r: 6, strokeWidth: 0, fill: '#1d4ed8'}} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <PermissionGuard permission={PERMISSIONS.PAYMENTS_VIEW} showLock={true} lockMessage="Graphique Financier Masqué">
+            <div className="h-72 mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData.map(item => ({...item, expenses: item.current ? Math.floor(item.current * (0.3 + Math.random() * 0.2)) : 0}))}>
+                  <defs>
+                    <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} tickFormatter={(val) => `$${val}`} dx={-10} />
+                  <Tooltip cursor={{stroke: '#e2e8f0', strokeWidth: 2}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 600 }} formatter={(value) => [`$${value}`, ""]} />
+                  <Area type="monotone" name="Revenus" dataKey="current" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorCurrent)" activeDot={{r: 6, strokeWidth: 0, fill: '#1d4ed8'}} />
+                  <Area type="monotone" name="Dépenses" dataKey="expenses" stroke="#ef4444" strokeWidth={4} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{r: 6, strokeWidth: 0, fill: '#b91c1c'}} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </PermissionGuard>
         </div>
         
         <div className="flex flex-col space-y-4">
@@ -982,11 +1065,18 @@ const OwnerDashboard = () => {
                 <span className="font-medium text-[11px] leading-tight">Broadcast</span>
                 <span className="text-[9px] font-medium text-blue-600/70 mt-0.5 leading-tight">Message clients</span>
               </button>
-              <button onClick={() => setQuickActionModal({ isOpen: true, action: 'Export' })} className="flex flex-col items-center justify-center text-center p-3 bg-emerald-50/80 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100/50">
-                <Download size={16} className="mb-1" /> 
-                <span className="font-medium text-[11px] leading-tight">Export Data</span>
-                <span className="text-[9px] font-medium text-emerald-600/70 mt-0.5 leading-tight">CSV / Excel</span>
-              </button>
+              <PermissionGuard permission={PERMISSIONS.BOOKINGS_EXPORT} fallback={
+                <button disabled className="flex flex-col items-center justify-center text-center p-3 bg-slate-50 text-slate-400 rounded-xl cursor-not-allowed shadow-sm border border-slate-100/50">
+                  <Lock size={16} className="mb-1" /> 
+                  <span className="font-medium text-[11px] leading-tight">Export Data</span>
+                </button>
+              }>
+                <button onClick={() => setQuickActionModal({ isOpen: true, action: 'Export' })} className="flex flex-col items-center justify-center text-center p-3 bg-emerald-50/80 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100/50">
+                  <Download size={16} className="mb-1" /> 
+                  <span className="font-medium text-[11px] leading-tight">Export Data</span>
+                  <span className="text-[9px] font-medium text-emerald-600/70 mt-0.5 leading-tight">CSV / Excel</span>
+                </button>
+              </PermissionGuard>
               <button onClick={() => setQuickActionModal({ isOpen: true, action: 'New Package' })} className="flex flex-col items-center justify-center text-center p-3 bg-purple-50/80 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors shadow-sm border border-purple-100/50">
                 <PlusCircle size={16} className="mb-1" /> 
                 <span className="font-medium text-[11px] leading-tight">New Package</span>
@@ -1092,106 +1182,288 @@ const OwnerDashboard = () => {
     );
   };
 
-  const renderEarnings = () => (
-    <div className="max-w-7xl mx-auto space-y-4">
-      {renderFilterBar()}
-      <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-        <h2 className="text-xl font-medium text-slate-800 mb-1 tracking-tight">Revenue by Package</h2>
-        <p className="text-3xl font-medium text-blue-600 mb-8 tracking-tight">${totalEarnings} <span className="text-xs font-medium text-slate-400 uppercase tracking-widest ml-2">Total Value</span></p>
-        
-        <div className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={packageEarnings} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <defs>
-                <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} tickFormatter={(val) => `$${val}`} dx={-10} />
-              <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 800, padding: '12px 20px' }} formatter={(value) => [`$${value}`, "Revenue"]} />
-              <Bar dataKey="earnings" fill="url(#colorEarnings)" radius={[8, 8, 8, 8]} barSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderPlanning = () => {
+    const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8:00 to 18:00
+    const instructors = ['Kory SENGHOR', 'John DOE', 'Sarah SMITH'];
+    const weekDays = ['Lun 3', 'Mar 4', 'Mer 5', 'Jeu 6', 'Ven 7', 'Sam 8', 'Dim 9'];
+
+    const handlePrevDay = () => setCalendarDate(prev => new Date(prev.setDate(prev.getDate() - 1)));
+    const handleNextDay = () => setCalendarDate(prev => new Date(prev.setDate(prev.getDate() + 1)));
+
     return (
-      <div className="max-w-5xl mx-auto space-y-6 relative">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto space-y-4 relative">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-medium text-slate-800 tracking-tight">Lesson Schedule</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">Manage your upcoming driving sessions</p>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Planning Interactif</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">Gérez les leçons et disponibilités de l'équipe.</p>
           </div>
+          
           <button 
             onClick={() => setShowScheduleModal(true)}
-            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-sm"
+            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
           >
-            <CalendarDays size={18} className="mr-2" />
-            Schedule Lesson
+            <PlusCircle size={18} className="mr-2" />
+            Planifier une session
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Date & Time</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Student</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Instructor</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-3 text-right text-[10px] font-medium text-slate-400 uppercase tracking-widest">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {lessons.length === 0 ? (
-                  <tr><td colSpan="5" className="px-6 py-12 text-center text-[13px] font-medium text-slate-500">No lessons scheduled yet</td></tr>
-                ) : lessons.map((lesson) => (
-                  <tr key={lesson.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-800">{new Date(lesson.lesson_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-                      <div className="text-xs font-medium text-slate-500 flex items-center mt-1">
-                        <Clock size={12} className="mr-1" /> {lesson.start_time.substring(0,5)} - {lesson.end_time.substring(0,5)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-800">{lesson.student_name}</div>
-                      <div className="text-xs text-slate-400">{lesson.student_email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">
-                      {lesson.instructor_email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${
-                        lesson.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                        lesson.status === 'Cancelled' ? 'bg-red-50 text-red-600 border-red-100' :
-                        'bg-blue-50 text-blue-600 border-blue-100'
-                      }`}>
-                        {lesson.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+        <div className="flex flex-col xl:flex-row gap-6">
+          
+          {/* Left Column: Calendar Main Area */}
+          <div className="flex-1 min-w-0 flex flex-col">
+             
+             {/* Unified Header matching Inspiration */}
+             <div className="flex flex-col md:flex-row items-center justify-between bg-white px-5 py-3 rounded-t-xl border border-slate-200 border-b-0 gap-4">
+                 
+                 {/* Left: Date Navigation */}
+                 <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-slate-600 w-16 hidden sm:block">
+                      {calendarView === 'Jour' ? 'Journée' : 'Semaine'}
+                    </span>
+                    <button onClick={handlePrevDay} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"><ChevronLeft size={20}/></button>
+                    <h3 className="text-[15px] font-bold text-slate-800 min-w-[180px] text-center capitalize">
+                      {calendarView === 'Jour' 
+                        ? calendarDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                        : '3 Août - 9 Août 2026'
+                      }
+                    </h3>
+                    <button onClick={handleNextDay} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"><ChevronRight size={20}/></button>
+                 </div>
+
+                 {/* Right: Controls & Filters */}
+                 <div className="flex items-center gap-2 flex-wrap justify-center">
+                    
+                    {/* Date Picker Button (Calendar Icon) */}
+                    <div className="relative group" title="Sauter à une date exacte">
+                      <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md border border-slate-200 transition-colors shadow-sm relative overflow-hidden flex items-center justify-center h-[38px] w-[38px]">
+                        <Calendar size={16} />
+                        <input 
+                          type="date" 
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          value={`${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(calendarDate.getDate()).padStart(2, '0')}`}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const [year, month, day] = e.target.value.split('-');
+                              setCalendarDate(new Date(year, month - 1, day));
+                            }
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Filter / Aggregation Dropdown */}
+                    <div className="relative group h-[38px]" title="Filtre (Agrégation)">
+                       <select className="h-full appearance-none pl-8 pr-3 bg-white border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm focus:outline-none">
+                         <option value="instructor">Agrégation : Instructeur</option>
+                         <option value="vehicle">Agrégation : Véhicule</option>
+                         <option value="student">Agrégation : Élève</option>
+                       </select>
+                       <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+                    {/* Today Button */}
+                    <button 
+                      onClick={() => setCalendarDate(new Date())} 
+                      className="h-[38px] px-4 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-sm"
+                    >
+                      Aujourd'hui
+                    </button>
+                    
+                    {/* View Switcher Dropdown (Day/Week/Month) */}
+                    <div className="relative h-[38px]">
                       <select 
-                        value={lesson.status}
-                        onChange={(e) => handleLessonAction(lesson.id, e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
+                        value={calendarView}
+                        onChange={(e) => setCalendarView(e.target.value)}
+                        className="h-full appearance-none px-4 pr-8 bg-white border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm focus:outline-none"
                       >
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Jour">Day</option>
+                        <option value="Semaine">Week</option>
+                        <option value="Mois">Month</option>
                       </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                    </div>
+
+                 </div>
+             </div>
+
+        {/* Calendar Grid */}
+        <div className="bg-white rounded-b-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-t-0 border-slate-100 overflow-hidden overflow-x-auto relative">
+          <div className="min-w-[900px]">
+            
+            {calendarView === 'Jour' ? (
+              <>
+                {/* Header Row (Instructors) */}
+                <div className="grid grid-cols-[80px_1fr_1fr_1fr] bg-slate-50 border-b border-slate-100">
+                  <div className="p-4 border-r border-slate-100"></div>
+                  {instructors.map(inst => (
+                    <div key={inst} className="p-4 border-r border-slate-100 text-center font-bold text-slate-700 flex flex-col items-center">
+                      <div className="w-10 h-10 bg-white rounded-full shadow-sm mb-2 flex items-center justify-center text-blue-600 font-bold border border-slate-200">
+                        {inst.charAt(0)}{inst.split(' ')[1]?.charAt(0)}
+                      </div>
+                      {inst}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Time Slots (Jour) */}
+                <div className="relative">
+                   {/* 09:00 - 11:00 (Kory) */}
+                   <div className="absolute top-[61px] left-[80px] w-[calc(33.33%-80px/3-4px)] h-[118px] bg-blue-50 border border-blue-200 rounded-xl m-[2px] p-3 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <div className="flex justify-between items-start mb-1">
+                         <span className="text-xs font-bold text-blue-700">09:00 - 11:00</span>
+                         <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      </div>
+                      <div className="font-bold text-slate-800 text-sm">Alexandre Dupont</div>
+                      <div className="text-[11px] text-blue-600 font-medium">Session Régulière</div>
+                      <div className="text-xs text-slate-500 mt-auto flex items-center"><Car size={12} className="mr-1"/> Honda Civic</div>
+                   </div>
+
+                   {/* 11:00 - 12:00 (John) */}
+                   <div className="absolute top-[181px] left-[calc(80px+(100%-80px)/3)] w-[calc(33.33%-80px/3-4px)] h-[58px] bg-emerald-50 border border-emerald-200 rounded-xl m-[2px] p-2 z-10 hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="flex justify-between items-center h-full">
+                         <div>
+                           <div className="font-bold text-slate-800 text-xs truncate max-w-[120px]">Marie Curie</div>
+                           <span className="text-[10px] font-bold text-emerald-700">11:00 - 12:00</span>
+                         </div>
+                         <div className="text-[10px] text-slate-600 font-medium flex items-center bg-white/60 px-1.5 py-0.5 rounded"><Car size={10} className="mr-1"/> Yaris (M)</div>
+                      </div>
+                   </div>
+
+                   {/* 13:00 - 15:00 (Sarah) */}
+                   <div className="absolute top-[301px] left-[calc(80px+2*(100%-80px)/3)] w-[calc(33.33%-80px/3-4px)] h-[118px] bg-purple-50 border border-purple-200 rounded-xl m-[2px] p-3 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <div className="flex justify-between items-start mb-1">
+                         <span className="text-xs font-bold text-purple-700">13:00 - 15:00</span>
+                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </div>
+                      <div className="font-bold text-slate-800 text-sm">Jean Valjean</div>
+                      <div className="text-[11px] text-purple-600 font-medium mt-1">Examen Pratique SAAQ</div>
+                      <div className="text-xs text-slate-500 mt-auto flex items-center"><Car size={12} className="mr-1"/> Corolla</div>
+                   </div>
+
+                   {/* Overlapping Mock (Kory Busy Day) */}
+                   {/* 14:00 - 15:30 */}
+                   <div className="absolute top-[361px] left-[80px] w-[calc((33.33%-80px/3-4px)/2)] h-[88px] bg-orange-50 border border-orange-200 rounded-xl m-[2px] p-2 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <span className="text-[10px] font-bold text-orange-700 mb-1">14:00 - 15:30</span>
+                      <div className="font-bold text-slate-800 text-xs truncate">Sophie L.</div>
+                   </div>
+                   {/* 14:30 - 16:00 (Overlap) */}
+                   <div className="absolute top-[391px] left-[calc(80px+((33.33%-80px/3-4px)/2))] w-[calc((33.33%-80px/3-4px)/2)] h-[88px] bg-blue-50 border border-blue-200 rounded-xl m-[2px] p-2 z-20 hover:shadow-md shadow-lg transition-shadow cursor-pointer flex flex-col">
+                      <span className="text-[10px] font-bold text-blue-700 mb-1">14:30 - 16:00</span>
+                      <div className="font-bold text-slate-800 text-xs truncate">Kevin D.</div>
+                   </div>
+
+                   {/* Background Grid Lines (Jour) */}
+                   {hours.map((_, i) => (
+                     <div key={i} className="flex border-b border-slate-100 h-[60px]">
+                       <div className="w-[80px] border-r border-slate-100 flex items-start justify-end pr-2 pt-2 text-xs font-medium text-slate-400 bg-white relative z-0">
+                         {i + 8}:00
+                       </div>
+                       <div className="flex-1 border-r border-slate-100 border-dashed"></div>
+                       <div className="flex-1 border-r border-slate-100 border-dashed"></div>
+                       <div className="flex-1"></div>
+                     </div>
+                   ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Header Row (Week Days) */}
+                <div className="grid grid-cols-[80px_repeat(7,minmax(0,1fr))] bg-slate-50 border-b border-slate-100">
+                  <div className="p-3 border-r border-slate-100"></div>
+                  {weekDays.map(day => (
+                    <div key={day} className="p-3 border-r border-slate-100 text-center text-xs font-bold text-slate-600 uppercase">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Slots (Semaine) */}
+                <div className="relative">
+                   {/* Week Mock Data */}
+                   {/* Monday 09:00 - 11:00 */}
+                   <div className="absolute top-[31px] left-[80px] w-[calc((100%-80px)/7-4px)] h-[58px] bg-blue-50 border border-blue-200 rounded-lg m-[2px] p-1.5 z-10 hover:shadow-md cursor-pointer overflow-hidden">
+                      <div className="text-[9px] font-bold text-blue-700">09:00 - 11:00 (Kory)</div>
+                      <div className="font-bold text-slate-800 text-[10px] truncate">Alexandre D.</div>
+                   </div>
+                   
+                   {/* Tuesday 14:00 - 16:00 */}
+                   <div className="absolute top-[181px] left-[calc(80px+(100%-80px)/7)] w-[calc((100%-80px)/7-4px)] h-[58px] bg-emerald-50 border border-emerald-200 rounded-lg m-[2px] p-1.5 z-10 hover:shadow-md cursor-pointer overflow-hidden">
+                      <div className="text-[9px] font-bold text-emerald-700">14:00 - 16:00 (John)</div>
+                      <div className="font-bold text-slate-800 text-[10px] truncate">Marie C.</div>
+                   </div>
+
+                  {/* Reduce height per hour to 30px for Week view to make it "smaller" like Google Calendar week view */}
+                  {hours.map(hour => (
+                    <div key={hour} className="grid grid-cols-[80px_repeat(7,minmax(0,1fr))] border-b border-slate-100 h-[30px] group">
+                      <div className="px-2 border-r border-slate-100 text-[10px] font-bold text-slate-400 text-right pr-3 -mt-2">
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
           </div>
+        </div>
+      </div>
+      
+      {/* Right Column: Vertical Legend / Actions Center */}
+      <div className="w-full xl:w-72 space-y-4">
+             <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-5 sticky top-6">
+               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
+                 <AlertCircle size={14} className="mr-2" />
+                 Centre d'Action
+               </h3>
+               
+               <div className="space-y-3">
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-rose-800 text-xs">Conflits (Overlap)</h4>
+                      <p className="text-[10px] text-rose-600 mt-1 leading-tight font-medium">2 leçons se chevauchent cet après-midi (Kory).</p>
+                    </div>
+                 </button>
+
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-amber-800 text-xs">À Confirmer</h4>
+                      <p className="text-[10px] text-amber-600 mt-1 leading-tight font-medium">1 Examen SAAQ en attente (Demain).</p>
+                    </div>
+                 </button>
+
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-slate-700 text-xs">Disponibilités</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-tight font-medium">John et Sarah ont des créneaux libres aujourd'hui.</p>
+                    </div>
+                 </button>
+               </div>
+               
+               <div className="mt-6 pt-5 border-t border-slate-100">
+                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Légende</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-blue-100 border border-blue-200 mr-2"></span> Session Régulière</div>
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-200 mr-2"></span> Examen SAAQ</div>
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-200 mr-2"></span> Évaluation Initiale</div>
+                  </div>
+               </div>
+             </div>
+          </div>
+
         </div>
 
         {/* Schedule Modal */}
@@ -1338,12 +1610,8 @@ const OwnerDashboard = () => {
             <button onClick={() => setActiveTab('Students')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Students' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
               <Users className={`mr-3 ${activeTab === 'Students' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Students
             </button>
-            <button onClick={() => setActiveTab('Earnings')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Earnings' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
-              <DollarSign className={`mr-3 ${activeTab === 'Earnings' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Earnings
-            </button>
-          
                       <button onClick={() => setActiveTab('Finance')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Finance' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
-              <TrendingUp className={`mr-3 ${activeTab === 'Finance' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Finance
+              <TrendingUp className={`mr-3 ${activeTab === 'Finance' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Finances
             </button>
                       <button onClick={() => setActiveTab('History')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'History' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
               <Activity className={`mr-3 ${activeTab === 'History' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> History & Logs
@@ -1427,6 +1695,8 @@ const OwnerDashboard = () => {
           <div className="flex items-center">
             <h2 className="text-xl font-semibold text-slate-800 hidden sm:block">{activeTab}</h2>
           </div>
+          <div className="flex items-center gap-4">
+          </div>
         </header>
 
         {/* Dynamic Tab Content */}
@@ -1440,241 +1710,51 @@ const OwnerDashboard = () => {
                </motion.div>
             )}
             {activeTab === 'Planning' && <motion.div key="Planning" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>{renderPlanning()}</motion.div>}
-            {activeTab === 'Earnings' && <motion.div key="Earnings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>{renderEarnings()}</motion.div>}
+            {activeTab === 'Earnings' && (
+              <motion.div key="Earnings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full">
+                <FinanceDashboard 
+                  bookings={bookings} 
+                  studentMeta={studentMeta} 
+                  chartData={chartData} 
+                  packageEarnings={packageEarnings} 
+                  totalEarnings={totalEarnings} 
+                />
+              </motion.div>
+            )}
             
             {activeTab === 'Students' && (
               <motion.div key="Students" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-7xl mx-auto space-y-6">
-              <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100">
-                  <h3 className="text-lg font-medium text-slate-800 tracking-tight">Student Directory ({uniqueStudents.length})</h3>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Automatically derived from booking history</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50/50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Student Name</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Contact Info</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Payment</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Progress</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">License Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {uniqueStudents.map((s, idx) => {
-                        const meta = studentMeta[s.email] || { payment: 'Pending', progress: 0, license: 'Not Started' };
-                        return (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-all border-b border-slate-50 last:border-none group">
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-50 to-purple-100 text-indigo-600 flex items-center justify-center font-medium uppercase shadow-inner shrink-0">
-                                {s.name.charAt(0)}
-                              </div>
-                              <div className="ml-4 font-medium text-slate-800">{s.name}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <div className="text-xs font-medium text-slate-600 flex items-center"><Mail size={14} className="mr-2 text-slate-400"/> {s.email}</div>
-                            <div className="text-xs font-medium text-slate-500 flex items-center mt-1.5"><Phone size={14} className="mr-2 text-slate-300"/> {s.phone || 'N/A'}</div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.payment}
-                              onChange={(e) => updateStudentMeta(s.email, 'payment', e.target.value)}
-                              className="text-xs font-medium bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700"
-                            >
-                              <option value="Pending">Pending</option>
-                              <option value="Validated">Validated</option>
-                            </select>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.progress}
-                              onChange={(e) => updateStudentMeta(s.email, 'progress', parseInt(e.target.value))}
-                              className="text-xs font-medium bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700"
-                            >
-                              <option value="0">0%</option>
-                              <option value="25">25%</option>
-                              <option value="50">50%</option>
-                              <option value="75">75%</option>
-                              <option value="100">100%</option>
-                            </select>
-                            <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                              <div className="h-full bg-blue-500" style={{ width: `${meta.progress}%` }}></div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.license}
-                              onChange={(e) => updateStudentMeta(s.email, 'license', e.target.value)}
-                              className={`text-[11px] font-medium uppercase tracking-wider px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none ${
-                                meta.license === 'Obtained' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' :
-                                meta.license === 'In Progress' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-                                'bg-slate-50 border border-slate-200 text-slate-600'
-                              }`}
-                            >
-                              <option value="Not Started">Not Started</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Courses Completed">Courses Completed</option>
-                              <option value="Obtained">Obtained</option>
-                            </select>
-                          </td>
-                        </tr>
-                      )})}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
+                <StudentCRM 
+                  students={uniqueStudents} 
+                  studentMeta={studentMeta} 
+                  lessons={lessons} 
+                  updateStudentMeta={updateStudentMeta} 
+                />
+              </motion.div>
           )}
 
           
-          {activeTab === 'Finance' && (
-            <motion.div key="Finance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-6xl mx-auto space-y-6 pb-12">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Total Revenue</p>
-                  <p className="text-3xl font-medium text-slate-800">${realTotalRevenue.toLocaleString()}</p>
-                  <p className="text-xs text-emerald-500 font-medium mt-2 flex items-center"><TrendingUp size={12} className="mr-1" /> +14% from last month</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Pending Payments</p>
-                  <p className="text-3xl font-medium text-slate-800">$2,450</p>
-                  <p className="text-xs text-amber-500 font-medium mt-2">12 students pending</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Expenses</p>
-                  <p className="text-3xl font-medium text-slate-800">$840</p>
-                  <p className="text-xs text-slate-400 font-medium mt-2">Fuel & Maintenance</p>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-emerald-400 flex flex-col justify-center text-white relative overflow-hidden">
-                  <DollarSign className="absolute -right-4 -bottom-4 opacity-10" size={100} />
-                  <p className="text-[11px] font-medium text-emerald-100 uppercase tracking-wider mb-2 relative z-10">Net Profit</p>
-                  <p className="text-3xl font-bold relative z-10">${realNetProfit.toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-xl font-medium text-slate-800">Team Management & Roles</h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Assign roles to restrict access to sensitive data and segment responsibilities.</p>
-                  </div>
-                </div>
-
-                {/* Role Explanations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Owner / Manager</span>
-                    <p className="text-xs text-slate-600 font-medium">Full access to Dashboard, Finance, Settings, and all student data. Can invite other members.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Secretary</span>
-                    <p className="text-xs text-slate-600 font-medium">Access to Bookings, Planning, and Client Communication. No access to Finance or Settings.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Instructor</span>
-                    <p className="text-xs text-slate-600 font-medium">Can only view their own assigned students and personal schedule. Cannot see overall revenue.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Accountant</span>
-                    <p className="text-xs text-slate-600 font-medium">Access strictly limited to the Finance tab and earnings exports.</p>
-                  </div>
-                </div>
-
-                {/* Add New Member Form */}
-                <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-200 mb-8">
-                  <h3 className="text-sm font-medium text-slate-800 mb-4">Invite New Member</h3>
-                  <form onSubmit={handleAddMember} className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                      <input 
-                        type="email" 
-                        required
-                        value={newMemberEmail}
-                        onChange={(e) => setNewMemberEmail(e.target.value)}
-                        placeholder="colleague@damedrive.com"
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
-                      />
-                    </div>
-                    <div className="w-full md:w-64">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Assign Role</label>
-                      <select 
-                        value={newMemberRole}
-                        onChange={(e) => setNewMemberRole(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
-                      >
-                        <option value="Manager">Manager</option>
-                        <option value="Secretary">Secretary</option>
-                        <option value="Instructor">Instructor</option>
-                        <option value="Accountant">Accountant</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition-all whitespace-nowrap">
-                      Send Invite
-                    </button>
-                  </form>
-                </div>
-
-                {/* Active Team List */}
-                <h3 className="text-sm font-medium text-slate-800 mb-4">Active Team Members</h3>
-                <div className="space-y-3">
-                  {teamMembers.map((member, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                      <div>
-                        <p className="font-medium text-slate-800 text-sm">{member.email}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{member.access}</p>
-                      </div>
-                      <span className={`${member.role === 'Admin' || member.role === 'Owner' || member.role === 'Manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : member.role === 'Secretary' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} font-bold uppercase tracking-wider text-[10px] px-3 py-1 rounded-full border`}>{member.role}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
-                  <h2 className="text-xl font-medium text-slate-800">Recent Transactions</h2>
-                  <button className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">Export CSV</button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50/50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {recentTransactions.map((b, i) => (
-                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">{new Date(b.created_at).toLocaleDateString()}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800 whitespace-nowrap">{b.name}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">{b.package}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800 whitespace-nowrap">+${parseAmount(b.total_amount).toLocaleString()}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase px-2 py-1 rounded border border-emerald-100">Paid</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
+            {activeTab === 'Finance' && (
+              <motion.div key="Finance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full">
+                <FinanceDashboard 
+                  bookings={bookings} 
+                  studentMeta={studentMeta} 
+                  chartData={chartData} 
+                  packageEarnings={packageEarnings} 
+                  totalEarnings={totalEarnings} 
+                />
+              </motion.div>
+            )}
 
           
           {activeTab === 'History' && (
             <motion.div key="History" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-6xl mx-auto space-y-6 pb-12">
-              <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto">
-                {['Broadcasts', 'Data Extractions', 'Support Tickets'].map(cat => (
+              <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto gap-2">
+                {['All Activity', 'Students & CRM', 'Planning', 'Communications', 'System & Security'].map(cat => (
                   <button 
                     key={cat}
                     onClick={() => setHistoryCategory(cat)}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${historyCategory === cat ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${historyCategory === cat ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
                   >
                     {cat}
                   </button>
@@ -1682,84 +1762,54 @@ const OwnerDashboard = () => {
               </div>
 
               <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100">
-                  <h2 className="text-xl font-medium text-slate-800">{historyCategory} History</h2>
+                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">History & Log</h2>
+                    <p className="text-sm text-slate-500 mt-1">Audit trail of platform activities</p>
+                  </div>
+                  <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                    Export CSV
+                  </button>
                 </div>
                 
-                {historyCategory === 'Broadcasts' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Date & Time</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">User</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Action</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Target / Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {MOCK_AUDIT_LOGS.filter(log => historyCategory === 'All Activity' || log.category === historyCategory).map((log, index) => (
+                        <tr key={log.id} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="px-4 py-2.5 whitespace-nowrap text-slate-500">
+                            {log.date}
+                          </td>
+                          <td className="px-4 py-2.5 whitespace-nowrap">
+                            <span className="font-semibold text-slate-800">{log.user}</span>
+                            <span className="text-slate-400 ml-2 text-xs">({log.role})</span>
+                          </td>
+                          <td className="px-4 py-2.5 whitespace-nowrap text-slate-700">
+                            {log.action}
+                          </td>
+                          <td className="px-4 py-2.5 text-slate-600">
+                            {log.target}
+                          </td>
+                        </tr>
+                      ))}
+                      {MOCK_AUDIT_LOGS.filter(log => historyCategory === 'All Activity' || log.category === historyCategory).length === 0 && (
                         <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date Sent</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Audience</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <td colSpan="4" className="px-4 py-6 text-center text-slate-500">
+                            No logs found for this category.
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Today, 09:41 AM</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Winter Driving Tips</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">All Active Students (45)</td>
-                          <td className="px-6 py-4"><span className="bg-emerald-50 text-emerald-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-emerald-100">Delivered</span></td>
-                        </tr>
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Aug 01, 2026</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Schedule Update</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Specific Group (12)</td>
-                          <td className="px-6 py-4"><span className="bg-emerald-50 text-emerald-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-emerald-100">Delivered</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {historyCategory === 'Data Extractions' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date Extracted</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Requested By</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rows</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Yesterday, 14:22 PM</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">{userName}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Finance Report (CSV)</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">124</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {historyCategory === 'Support Tickets' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ticket ID</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">#TK-8902</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Refund Request</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">John Doe</td>
-                          <td className="px-6 py-4"><span className="bg-slate-100 text-slate-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-slate-200">Resolved</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
               </div>
             </motion.div>
@@ -1767,111 +1817,8 @@ const OwnerDashboard = () => {
 
 
           {activeTab === 'Settings' && (
-            <motion.div key="Settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-3xl mx-auto space-y-6 pb-12">
-              
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <h2 className="text-xl font-medium text-slate-800 mb-6">System Settings</h2>
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Primary Admin Email</label>
-                    <input type="email" disabled value="suporttest474@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-500 cursor-not-allowed font-medium shadow-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Booking Alerts Email</label>
-                    <input type="email" defaultValue="suporttest474@gmail.com" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm" />
-                    <p className="text-xs text-slate-500 mt-2 font-medium">This is where Web3Forms sends new booking alerts.</p>
-                  </div>
-                  <div className="pt-4">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-xl transition-all shadow-md active:scale-95">
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-xl font-medium text-slate-800">Team Management & Roles</h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Assign roles to restrict access to sensitive data and segment responsibilities.</p>
-                  </div>
-                </div>
-
-                {/* Role Explanations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Owner / Manager</span>
-                    <p className="text-xs text-slate-600 font-medium">Full access to Dashboard, Finance, Settings, and all student data. Can invite other members.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Secretary</span>
-                    <p className="text-xs text-slate-600 font-medium">Access to Bookings, Planning, and Client Communication. No access to Finance or Settings.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Instructor</span>
-                    <p className="text-xs text-slate-600 font-medium">Can only view their own assigned students and personal schedule. Cannot see overall revenue.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Accountant</span>
-                    <p className="text-xs text-slate-600 font-medium">Access strictly limited to the Finance tab and earnings exports.</p>
-                  </div>
-                </div>
-
-                {/* Add New Member Form */}
-                <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-200 mb-8">
-                  <h3 className="text-sm font-medium text-slate-800 mb-4">Invite New Member</h3>
-                  <form onSubmit={handleAddMember} className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                      <input 
-                        type="email" 
-                        required
-                        value={newMemberEmail}
-                        onChange={(e) => setNewMemberEmail(e.target.value)}
-                        placeholder="colleague@damedrive.com"
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
-                      />
-                    </div>
-                    <div className="w-full md:w-64">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Assign Role</label>
-                      <select 
-                        value={newMemberRole}
-                        onChange={(e) => setNewMemberRole(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
-                      >
-                        <option value="Manager">Manager</option>
-                        <option value="Secretary">Secretary</option>
-                        <option value="Instructor">Instructor</option>
-                        <option value="Accountant">Accountant</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition-all whitespace-nowrap">
-                      Send Invite
-                    </button>
-                  </form>
-                </div>
-
-                {/* Active Team List */}
-                <h3 className="text-sm font-medium text-slate-800 mb-4">Active Team Members</h3>
-                <div className="space-y-3">
-                  {teamMembers.map((member, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                      <div>
-                        <p className="font-medium text-slate-800 text-sm">{member.email}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{member.access}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`${member.role === 'Admin' || member.role === 'Owner' || member.role === 'Manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : member.role === 'Secretary' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} font-bold uppercase tracking-wider text-[10px] px-3 py-1 rounded-full border`}>{member.role}</span>
-                        {member.email !== 'koryobjectif@gmail.com' && (
-                          <button onClick={() => handleRemoveMember(member.id)} className="text-red-500 hover:text-red-700 text-xs font-medium">Revoke</button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-
+            <motion.div key="Settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full mx-auto space-y-6 pb-12">
+              <SettingsView />
             </motion.div>
           )}
           </AnimatePresence>
@@ -1949,29 +1896,26 @@ const OwnerDashboard = () => {
               <div className="p-8">
                 {quickActionModal.action === 'Broadcast' && (
                   <div className="space-y-4">
-                    <p className="text-sm font-medium text-slate-500 mb-4">Send targeted emails to specific client segments.</p>
+                    <p className="text-sm font-medium text-slate-500 mb-4">Envoyer des rappels ciblés aux élèves.</p>
                     <div className="flex gap-3 mb-4 flex-wrap">
-                      <button className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-400">All Pending ({pending})</button>
-                      <button className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-medium hover:bg-emerald-100 transition-colors focus:ring-2 focus:ring-emerald-400">All Completed ({bookings.filter(b => b.status === 'completed').length})</button>
-                      <button className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors focus:ring-2 focus:ring-red-400">All Cancelled ({bookings.filter(b => b.status === 'cancelled').length})</button>
-                      <button className="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors focus:ring-2 focus:ring-slate-400">Search Individual...</button>
+                      <button className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-400">Tous les Pending ({pending})</button>
                     </div>
                     <div>
-                      <input type="text" placeholder="Subject (e.g., Thank you for choosing us!)" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
-                      <textarea className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" rows="5" placeholder="Compose your message here..."></textarea>
+                      <input type="text" placeholder="Sujet (ex: Rappel de paiement)" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                      <textarea className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" rows="5" placeholder="Composez votre message ici..."></textarea>
                     </div>
                     <div className="flex gap-3">
-                      <button className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors" onClick={() => setQuickActionModal({ isOpen: false, action: null })}>Cancel</button>
-                      <button className="w-2/3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors" onClick={() => { alert('Emails sent successfully!'); setQuickActionModal({ isOpen: false, action: null }); }}>Send Emails</button>
+                      <button className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors" onClick={() => setQuickActionModal({ isOpen: false, action: null })}>Annuler</button>
+                      <button className="w-2/3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors" onClick={handleSendReminders}>Envoyer Rappels</button>
                     </div>
                   </div>
                 )}
                 {quickActionModal.action === 'Export' && (
                   <div className="space-y-4 text-center">
-                    <p className="text-sm font-medium text-slate-500 mb-4">Exporting {filteredBookings.length} booking records.</p>
+                    <p className="text-sm font-medium text-slate-500 mb-4">Exportation de {filteredBookings.length} dossiers.</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <button className="py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors" onClick={() => { alert('Exporting to Excel...'); setQuickActionModal({ isOpen: false, action: null }); }}>Download Excel</button>
-                      <button className="py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-100 transition-colors" onClick={() => { alert('Exporting to CSV...'); setQuickActionModal({ isOpen: false, action: null }); }}>Download CSV</button>
+                      <button className="py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors" onClick={() => { showToast('Bientôt disponible !', 'info'); setQuickActionModal({ isOpen: false, action: null }); }}>Download Excel</button>
+                      <button className="py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-100 transition-colors" onClick={handleExportCSV}>Download CSV</button>
                     </div>
                   </div>
                 )}
@@ -2061,488 +2005,1153 @@ const OwnerDashboard = () => {
 export default OwnerDashboard;
 ```
 
-## Fichier : src/components/AdminLogin.jsx
+## Fichier : src/pages/DashboardRouter.jsx
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import { ROLES } from '../config/roles';
 
-const AdminLogin = () => {
-  const [email, setEmail] = useState('');
-  const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    setEmail('');
-    setPassword('');
-    setError('');
-    
-    // Check for URL query errors (like unauthorized access from React)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('error') === 'unauthorized') {
-      setError('Access Denied: Your email is not authorized. Please contact the administrator.');
-      window.history.replaceState({}, document.title, window.location.pathname);
+
+// The Unified Dashboard (formerly OwnerDashboard)
+import OwnerDashboard from './dashboards/OwnerDashboard';
+
+const DashboardRouter = () => {
+  return (
+    <>
+      <OwnerDashboard />
+    </>
+  );
+};
+
+export default DashboardRouter;
+```
+
+## Fichier : src/components/finance/FinanceDashboard.jsx
+```jsx
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, Receipt, Download, FileText, CheckCircle2, AlertCircle, ArrowUpRight, Search, Filter } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
+
+const FinanceDashboard = ({ bookings, studentMeta, chartData, packageEarnings, totalEarnings }) => {
+  const [activeTab, setActiveTab] = useState('Overview'); // Overview, Transactions, Invoices
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 1. Calculations & Data Processing
+  const parseAmount = (amtStr) => {
+    if (!amtStr) return 0;
+    if (typeof amtStr === 'number') return amtStr;
+    const num = parseFloat(String(amtStr).replace(/[^0-9.-]+/g,""));
+    return isNaN(num) ? 0 : num;
+  };
+
+  const exportToCSV = () => {
+    if (filteredTransactions.length === 0) return;
+    const headers = ['Nom du Client', 'Email', 'Date', 'Forfait', 'Montant', 'Statut'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredTransactions.map(t => {
+        const meta = studentMeta[t.email] || {};
+        const status = meta.payment === 'Pending' ? 'En attente' : 'Payé';
+        return `"${t.name}","${t.email}","${new Date(t.created_at).toLocaleDateString()}","${t.package || 'Standard'}","${parseAmount(t.total_amount)}","${status}"`;
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleWhatsAppReminder = (name, phone) => {
+    if (!phone) {
+      alert("Ce client n'a pas de numéro de téléphone enregistré.");
+      return;
     }
-    
-    // Check for URL hash errors (like unauthorized access from Postgres Trigger)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('error_description')) {
-      const decodedError = decodeURIComponent(hashParams.get('error_description').replace(/\+/g, ' '));
-      setError(decodedError);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Bonjour ${name}, ceci est un rappel amical de DameDrive concernant votre paiement en attente. Merci de régulariser la situation dès que possible !`);
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error("getSession error:", error);
-        setError(error.message);
-      }
-      if (session) {
-        navigate('/admin');
-      }
-    });
+  // Mocking expenses dynamically for the chart based on revenue
+  const enhancedChartData = useMemo(() => {
+    return chartData.map(item => ({
+      ...item,
+      expenses: item.current ? Math.floor(item.current * (0.3 + Math.random() * 0.2)) : 0
+    }));
+  }, [chartData]);
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/admin');
-      }
-      if (event === 'PASSWORD_RECOVERY') {
-        setError('Password recovery not implemented yet.');
-      }
-      if (event === 'USER_UPDATED') {
-        console.log('User updated');
-      }
-    });
+  // Pending Payments Calculation
+  const pendingStudents = Object.entries(studentMeta).filter(([email, meta]) => meta.payment === 'Pending');
+  const pendingPaymentsAmount = pendingStudents.reduce((sum, [email]) => {
+    const studentBookings = bookings.filter(b => b.email === email);
+    const amount = studentBookings.reduce((acc, b) => acc + parseAmount(b.total_amount), 0);
+    return sum + amount;
+  }, 0);
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
+  const estimatedExpenses = 840; // Fixed mock for now, could be dynamic
+  const netProfit = totalEarnings - estimatedExpenses;
 
-  const [showPassword, setShowPassword] = useState(false);
+  // Chart Colors
+  const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
+  // Transactions List
+  const transactions = [...bookings].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   
-  const handleOAuthLogin = async (provider) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: {
-          redirectTo: `${window.location.origin}/login`
-        }
-      });
-      if (error) throw error;
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const filteredTransactions = transactions.filter(t => {
+    const searchLower = searchQuery.toLowerCase();
+    return (t.name && t.name.toLowerCase().includes(searchLower)) ||
+           (t.email && t.email.toLowerCase().includes(searchLower)) ||
+           (t.package && t.package.toLowerCase().includes(searchLower));
+  });
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  // Render Functions
+  const renderKPIs = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      {/* Total Revenue */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+            <DollarSign size={24} strokeWidth={2.5} />
+          </div>
+          <span className="flex items-center text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">
+            <TrendingUp size={14} className="mr-1" /> +12%
+          </span>
+        </div>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Revenu Total</p>
+        <h3 className="text-3xl font-black text-slate-800 tracking-tight">${totalEarnings.toLocaleString()}</h3>
+      </motion.div>
 
-      if (error) throw error;
-      if (data.session) {
-        navigate('/admin');
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+      {/* Pending Payments */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-50/50 to-orange-50/50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 shadow-inner">
+            <AlertCircle size={24} strokeWidth={2.5} />
+          </div>
+          <span className="flex items-center text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">
+            {pendingStudents.length} dossiers
+          </span>
+        </div>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">En attente</p>
+        <h3 className="text-3xl font-black text-slate-800 tracking-tight">${pendingPaymentsAmount.toLocaleString()}</h3>
+      </motion.div>
+
+      {/* Expenses */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-50/50 to-rose-50/50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 shadow-inner">
+            <Receipt size={24} strokeWidth={2.5} />
+          </div>
+          <span className="flex items-center text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-lg">
+            <TrendingDown size={14} className="mr-1" /> Fixe
+          </span>
+        </div>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Dépenses Estimées</p>
+        <h3 className="text-3xl font-black text-slate-800 tracking-tight">${estimatedExpenses.toLocaleString()}</h3>
+      </motion.div>
+
+      {/* Net Profit */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-slate-900 rounded-3xl p-6 shadow-xl shadow-slate-900/20 border border-slate-800 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        <div className="absolute bottom-0 right-0 opacity-10">
+           <TrendingUp size={100} />
+        </div>
+        <div className="flex items-center justify-between mb-4 z-10 relative">
+          <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white shadow-inner">
+            <CreditCard size={24} strokeWidth={2.5} />
+          </div>
+        </div>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 z-10 relative">Bénéfice Net</p>
+        <h3 className="text-3xl font-black text-white tracking-tight z-10 relative">${netProfit.toLocaleString()}</h3>
+      </motion.div>
+    </div>
+  );
+
+  const renderOverview = () => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Main Area Chart - Revenue Over Time */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-800 tracking-tight">Évolution des Revenus</h3>
+              <p className="text-sm font-medium text-slate-500">Flux de trésorerie sur la période sélectionnée.</p>
+            </div>
+            <button onClick={exportToCSV} className="flex items-center text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+              <Download size={16} className="mr-2" /> Exporter CSV
+            </button>
+          </div>
+          <div className="flex-1 min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={enhancedChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} tickFormatter={(val) => `$${val}`} />
+                <Tooltip 
+                  cursor={{stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3'}}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 700, padding: '12px 20px' }}
+                />
+                <Area type="monotone" dataKey="current" name="Revenus" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                <Area type="monotone" dataKey="expenses" name="Dépenses" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExpenses)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Breakdown by Package */}
+        <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col">
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Répartition par Forfait</h3>
+            <p className="text-sm font-medium text-slate-500">Meilleurs générateurs de revenus.</p>
+          </div>
+          <div className="flex-1 min-h-[300px] flex flex-col">
+            <div className="h-48 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={packageEarnings}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="earnings"
+                    stroke="none"
+                  >
+                    {packageEarnings.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgb(0 0 0 / 0.1)', fontWeight: 700 }}
+                    formatter={(value) => [`$${value}`, "Revenu"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="space-y-3 overflow-y-auto pr-2">
+              {packageEarnings.map((pkg, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
+                    <span className="text-sm font-bold text-slate-700 truncate max-w-[120px]">{pkg.name || 'Autre'}</span>
+                  </div>
+                  <span className="text-sm font-black text-slate-900">${pkg.earnings}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </motion.div>
+  );
+
+  const renderTransactions = () => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+      <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight">Toutes les transactions</h3>
+          <p className="text-sm font-medium text-slate-500">Historique complet de facturation.</p>
+        </div>
+        
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Rechercher une facture..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-50/50">
+            <tr>
+              <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Client & Date</th>
+              <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Forfait</th>
+              <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Montant</th>
+              <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Statut</th>
+              <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Facture</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filteredTransactions.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="px-6 py-12 text-center">
+                   <FileText className="mx-auto text-slate-300 mb-2" size={32} />
+                   <p className="text-slate-500 font-medium text-sm">Aucune transaction trouvée.</p>
+                </td>
+              </tr>
+            ) : (
+              filteredTransactions.map((t, idx) => {
+                const meta = studentMeta[t.email] || {};
+                const isPending = meta.payment === 'Pending';
+                
+                return (
+                  <tr key={t.id || idx} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-bold text-slate-800 text-sm">{t.name}</div>
+                      <div className="text-xs font-medium text-slate-400 mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">{t.package || 'Standard'}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="font-black text-slate-900">${parseAmount(t.total_amount)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${
+                        isPending ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                      }`}>
+                        {isPending ? <AlertCircle size={12} className="mr-1.5"/> : <CheckCircle2 size={12} className="mr-1.5"/>}
+                        {isPending ? 'En attente' : 'Payé'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {isPending ? (
+                        <button 
+                          onClick={() => handleWhatsAppReminder(t.name, t.phone)}
+                          className="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 font-bold text-xs rounded-lg transition-colors flex items-center justify-end ml-auto"
+                        >
+                          Relancer
+                        </button>
+                      ) : (
+                        <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors ml-auto flex">
+                          <ArrowUpRight size={18} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
+  );
 
   return (
-    <div className="min-h-screen relative flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans overflow-hidden">
-      {/* Dark Slate/Indigo Background matching the Dashboard aesthetic */}
-      <div className="absolute inset-0 bg-slate-50 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30"></div>
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] border-[0.5px] border-blue-100/50 rounded-full"></div>
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[1100px] h-[1100px] border-[0.5px] border-blue-100/50 rounded-full"></div>
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[1400px] h-[1400px] border-[0.5px] border-blue-100/50 rounded-full"></div>
+    <div className="max-w-7xl mx-auto">
+      {/* Dashboard Header & Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Finances & Facturation</h2>
+          <p className="text-sm font-medium text-slate-500 mt-1">Supervisez vos revenus, dépenses et paiements en attente.</p>
+        </div>
         
-        {/* Soft abstract glows */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[100px]"></div>
-      </div>
-      
-      {/* Top Left Brand */}
-      <div className="absolute top-6 left-6 flex items-center bg-white/80 border border-slate-100 backdrop-blur text-slate-800 px-3 py-1.5 rounded-xl shadow-sm">
-        <div className="w-5 h-5 bg-blue-600 rounded mr-2 flex items-center justify-center">
-          <div className="w-2.5 h-2.5 bg-white rounded-sm transform rotate-45"></div>
-        </div>
-        <span className="font-bold text-sm tracking-tight">DameDrive</span>
-      </div>
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-[420px] relative z-10">
-        <div className="bg-white/95 backdrop-blur-xl py-10 px-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-[32px] border border-white/50">
-          
-          <div className="flex flex-col items-center mb-8">
-
-            <h2 className="text-[22px] font-bold text-slate-900 tracking-tight mb-2">
-              Sign in with email
-            </h2>
-            <p className="text-center text-[13px] text-slate-500 font-medium leading-relaxed max-w-[280px]">
-              Sign in to DameDrive to bring your bookings, planning, and finance together. For free.
-            </p>
-          </div>
-
-          <form className="space-y-4" onSubmit={handleLogin} autoComplete="off">
-            {error && (
-              <div className="bg-red-50 text-red-600 text-xs font-medium p-3 rounded-xl border border-red-100 text-center">
-                {error}
-              </div>
-            )}
-            
-            <div className="space-y-3">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail size={16} className="text-slate-400" />
-                </div>
-                <input
-                  type="email" autoComplete="off" name="dm_email_auth"
-                  required
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3.5 bg-[#f4f5f7] border-transparent rounded-[14px] text-[13px] font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 transition-all outline-none"
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock size={16} className="text-slate-400" />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password" name="dm_pwd_auth"
-                  required
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-12 py-3.5 bg-[#f4f5f7] border-transparent rounded-[14px] text-[13px] font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 transition-all outline-none"
-                />
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 focus:outline-none">
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-1 pb-3">
-              <a href="#" className="text-[12px] font-medium text-slate-500 hover:text-slate-800 transition-colors">
-                Forgot password?
-              </a>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-[14px] shadow-sm text-[14px] font-bold text-white bg-[#1a1b23] hover:bg-black focus:outline-none focus:ring-4 focus:ring-slate-200 transition-all disabled:opacity-50"
-              >
-                {loading ? 'Signing in...' : 'Get Started'}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-100 border-dashed"></div>
-              </div>
-              <div className="relative flex justify-center text-[11px] font-medium uppercase tracking-widest text-slate-400">
-                <span className="bg-white px-3">Or sign in with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <button type="button" onClick={() => handleOAuthLogin('google')} className="flex justify-center items-center py-3 border border-slate-200 rounded-[14px] bg-white hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 transition-all duration-200">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-              </button>
-              <button type="button" onClick={() => handleOAuthLogin('facebook')} className="flex justify-center items-center py-3 border border-slate-200 rounded-[14px] bg-white hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 transition-all duration-200">
-                <svg className="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button type="button" onClick={() => handleOAuthLogin('apple')} className="flex justify-center items-center py-3 border border-slate-200 rounded-[14px] bg-white hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 transition-all duration-200">
-                 <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                   <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.74.887-1.99 1.49-2.96 1.49-.122 0-.243-.01-.355-.02.04-1.12.56-2.22 1.25-3.05.69-.83 1.83-1.42 2.87-1.52.03.11.04.22.04.33zM16.634 6.32c-1.34 0-2.61.85-3.32.85-.72 0-2.03-.84-3.18-.84-2.49 0-4.78 1.41-6.05 3.56-2.58 4.41-.66 10.96 1.85 14.54 1.23 1.76 2.68 3.72 4.6 3.72 1.85 0 2.54-1.11 4.79-1.11 2.22 0 2.9.11 4.78 1.11 1.95 0 3.3-1.85 4.51-3.6 1.42-2.04 2.01-4.02 2.04-4.12-.04-.02-3.88-1.46-3.88-5.91 0-3.72 3.09-5.48 3.23-5.56-1.74-2.51-4.45-2.84-5.41-2.91-1.63-.15-3.23.95-4.06.95z"/>
-                 </svg>
-              </button>
-            </div>
-          </div>
-          
+        <div className="flex bg-slate-100/80 p-1 rounded-xl">
+          {['Overview', 'Transactions'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${
+                activeTab === tab 
+                  ? 'bg-white text-slate-800 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+              }`}
+            >
+              {tab === 'Overview' ? 'Aperçu Général' : 'Transactions'}
+            </button>
+          ))}
         </div>
       </div>
+
+      {renderKPIs()}
+
+      <AnimatePresence mode="wait">
+        {activeTab === 'Overview' && renderOverview()}
+        {activeTab === 'Transactions' && renderTransactions()}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default AdminLogin;
+export default FinanceDashboard;
 ```
 
-## Fichier : src/context/AuthContext.jsx
+## Fichier : src/components/crm/StudentCRM.jsx
 ```jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { ROLES, ROLE_PERMISSIONS } from '../config/roles';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, User, Phone, Mail, CalendarDays, Filter, ChevronRight, ArrowLeft, X, Clock, CheckCircle2, AlertCircle, FileText, TrendingUp, Award, Bookmark, DollarSign } from 'lucide-react';
 
-const AuthContext = createContext({});
+const StudentCRM = ({ students, studentMeta, lessons, updateStudentMeta }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterProgress, setFilterProgress] = useState('All');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  
+  // Filtering logic
+  const filteredStudents = students.filter(student => {
+    const meta = studentMeta[student.email] || { progress: 0, payment: 'Pending', license: 'Not Started' };
+    const searchLower = searchQuery.toLowerCase();
+    const matchSearch = student.name.toLowerCase().includes(searchLower) || 
+                        student.email.toLowerCase().includes(searchLower) ||
+                        (student.phone && student.phone.includes(searchLower));
+                        
+    let matchProgress = true;
+    if (filterProgress === 'Completed') matchProgress = meta.progress === 100;
+    if (filterProgress === 'In Progress') matchProgress = meta.progress > 0 && meta.progress < 100;
+    if (filterProgress === 'Not Started') matchProgress = meta.progress === 0;
+    if (filterProgress === 'Pending Payment') matchProgress = meta.payment === 'Pending';
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(ROLES.OWNER); // Default to OWNER for development/testing
-  const [permissions, setPermissions] = useState(ROLE_PERMISSIONS[ROLES.OWNER]);
-  const [loading, setLoading] = useState(true);
+    return matchSearch && matchProgress;
+  });
 
-  const verifyUserAccess = async (sessionUser) => {
-    if (!sessionUser) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    // Always allow the main owner
-    if (sessionUser.email === 'suporttest474@gmail.com' || sessionUser.email === 'koryobjectif@gmail.com') {
-      setUser(sessionUser);
-      setRole('Owner');
-      setPermissions(ROLE_PERMISSIONS['Owner']);
-      setLoading(false);
-      return;
-    }
-
-    // Check database for invitation
-    const { data, error } = await supabase
-      .from('invitations')
-      .select('*')
-      .eq('email', sessionUser.email)
-      .single();
-
-    if (error || !data) {
-      console.error('Access Denied: User not in invitations list');
-      setUser(sessionUser);
-      setRole('unauthorized');
-      setPermissions([]);
-      setLoading(false);
-    } else {
-      setUser(sessionUser);
-      setRole(data.role);
-      setPermissions(ROLE_PERMISSIONS[data.role] || []);
-      setLoading(false);
-    }
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      verifyUserAccess(session?.user || null);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      verifyUserAccess(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const setRoleOverride = (newRole) => {
-    setRole(newRole);
-    setPermissions(ROLE_PERMISSIONS[newRole] || []);
+  const getProgressColor = (progress) => {
+    if (progress === 100) return 'text-emerald-500 bg-emerald-50';
+    if (progress >= 50) return 'text-blue-500 bg-blue-50';
+    if (progress > 0) return 'text-amber-500 bg-amber-50';
+    return 'text-slate-400 bg-slate-50';
   };
 
-  const hasPermission = (permission) => {
-    if (role === ROLES.OWNER) return true; // Owner has all permissions implicitly
-    return permissions.includes(permission);
+  const getProgressStroke = (progress) => {
+    if (progress === 100) return 'stroke-emerald-500';
+    if (progress >= 50) return 'stroke-blue-500';
+    if (progress > 0) return 'stroke-amber-500';
+    return 'stroke-slate-200';
+  };
+
+  const CircularProgress = ({ progress }) => {
+    const radius = 18;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+    return (
+      <div className="relative flex items-center justify-center w-12 h-12">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r={radius} fill="transparent" strokeWidth="4" className="stroke-slate-100" />
+          <circle 
+            cx="22" cy="22" r={radius} 
+            fill="transparent" 
+            strokeWidth="4" 
+            strokeDasharray={circumference} 
+            strokeDashoffset={strokeDashoffset} 
+            strokeLinecap="round"
+            className={`${getProgressStroke(progress)} transition-all duration-1000 ease-out`} 
+          />
+        </svg>
+        <span className="absolute text-[10px] font-bold text-slate-700">{progress}%</span>
+      </div>
+    );
+  };
+
+  const renderStudentList = () => (
+    <div className="space-y-6">
+      {/* Header & Filters */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 tracking-tight">Dossiers Étudiants</h3>
+          <p className="text-sm font-medium text-slate-500 mt-1">Gérez le suivi, la progression et l'historique de vos {students.length} élèves.</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input 
+              type="text" 
+              placeholder="Rechercher un élève..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+            />
+          </div>
+          <div className="relative">
+            <select 
+              value={filterProgress}
+              onChange={(e) => setFilterProgress(e.target.value)}
+              className="appearance-none pl-10 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 cursor-pointer focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+            >
+              <option value="All">Tous les statuts</option>
+              <option value="In Progress">En Cours</option>
+              <option value="Not Started">Non Commencé</option>
+              <option value="Completed">Terminé</option>
+              <option value="Pending Payment">Paiement en attente</option>
+            </select>
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none transform rotate-90" size={16} />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid of Students */}
+      {filteredStudents.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="text-slate-300" size={32} />
+          </div>
+          <h4 className="text-lg font-bold text-slate-700">Aucun étudiant trouvé</h4>
+          <p className="text-slate-500 text-sm mt-2 font-medium">Modifiez vos filtres de recherche.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredStudents.map((student, idx) => {
+            const meta = studentMeta[student.email] || { progress: 0, payment: 'Pending', license: 'Not Started' };
+            const studentLessons = lessons.filter(l => l.student_email === student.email);
+            const nextLesson = studentLessons.filter(l => new Date(l.lesson_date) >= new Date()).sort((a,b) => new Date(a.lesson_date) - new Date(b.lesson_date))[0];
+            
+            return (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                key={student.email}
+                onClick={() => setSelectedStudent({ ...student, meta, studentLessons, nextLesson })}
+                className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer transition-all duration-300 group relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50/50 to-purple-50/50 rounded-bl-[100px] -z-10 transition-transform group-hover:scale-110"></div>
+                
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-sm ${getProgressColor(meta.progress)}`}>
+                      {getInitials(student.name)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-[15px] truncate max-w-[120px]">{student.name}</h4>
+                      <p className="text-xs font-medium text-slate-400 mt-0.5 truncate max-w-[120px]">{student.email}</p>
+                    </div>
+                  </div>
+                  <CircularProgress progress={meta.progress} />
+                </div>
+
+                <div className="space-y-2 mt-5 pt-4 border-t border-slate-50">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="text-slate-400 flex items-center"><CalendarDays size={14} className="mr-1.5"/> Prochain cours</span>
+                    <span className="text-slate-700">{nextLesson ? new Date(nextLesson.lesson_date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) : 'Aucun'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="text-slate-400 flex items-center"><DollarSign size={14} className="mr-1.5"/> Paiement</span>
+                    <span className={`px-2 py-0.5 rounded-md ${meta.payment === 'Validated' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                      {meta.payment === 'Validated' ? 'Payé' : 'En attente'}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderStudentProfile = () => {
+    if (!selectedStudent) return null;
+    const { meta, studentLessons, nextLesson } = selectedStudent;
+    const pastLessons = studentLessons.filter(l => new Date(l.lesson_date) < new Date()).sort((a,b) => new Date(b.lesson_date) - new Date(a.lesson_date));
+    
+    return (
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }} 
+        animate={{ opacity: 1, x: 0 }} 
+        exit={{ opacity: 0, x: 20 }}
+        className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 overflow-hidden flex flex-col md:flex-row min-h-[600px]"
+      >
+        {/* Sidebar / Info Panel */}
+        <div className="w-full md:w-80 bg-slate-50 border-r border-slate-100 p-8 flex flex-col relative">
+          <button 
+            onClick={() => setSelectedStudent(null)}
+            className="absolute top-6 left-6 flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 hover:shadow-sm transition-all"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Retour
+          </button>
+
+          <div className="flex flex-col items-center text-center mt-8 mb-8">
+             <div className="relative">
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center font-bold text-3xl shadow-md ${getProgressColor(meta.progress)}`}>
+                  {getInitials(selectedStudent.name)}
+                </div>
+                {meta.license === 'Obtained' && (
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-400 text-white rounded-full flex items-center justify-center border-2 border-white shadow-sm" title="Permis Obtenu">
+                    <Award size={16} />
+                  </div>
+                )}
+             </div>
+             <h2 className="text-xl font-bold text-slate-800 mt-4 tracking-tight">{selectedStudent.name}</h2>
+             <p className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center"><Phone size={14} className="mr-1.5"/> {selectedStudent.phone || 'Non renseigné'}</p>
+             <p className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center"><Mail size={14} className="mr-1.5"/> {selectedStudent.email}</p>
+          </div>
+
+          <div className="space-y-5 flex-1">
+             <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Progression</h4>
+               <div className="flex items-center justify-between mb-2">
+                 <span className="text-sm font-bold text-slate-700">{meta.progress}%</span>
+                 <span className="text-xs font-medium text-slate-500">Examen SAAQ</span>
+               </div>
+               <div className="w-full bg-slate-100 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${meta.progress}%` }}></div>
+               </div>
+               <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                 <span className="text-xs font-medium text-slate-500">Mettre à jour :</span>
+                 <select 
+                    value={meta.progress}
+                    onChange={(e) => {
+                      updateStudentMeta(selectedStudent.email, 'progress', parseInt(e.target.value));
+                      setSelectedStudent(prev => ({...prev, meta: {...prev.meta, progress: parseInt(e.target.value)}}));
+                    }}
+                    className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 cursor-pointer"
+                 >
+                   <option value="0">0%</option>
+                   <option value="25">25%</option>
+                   <option value="50">50%</option>
+                   <option value="75">75%</option>
+                   <option value="100">100%</option>
+                 </select>
+               </div>
+             </div>
+
+             <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Dossier Administratif</h4>
+               
+               <div className="space-y-3">
+                 <div className="flex items-center justify-between">
+                   <span className="text-xs font-medium text-slate-600">Paiement</span>
+                   <select 
+                      value={meta.payment}
+                      onChange={(e) => {
+                        updateStudentMeta(selectedStudent.email, 'payment', e.target.value);
+                        setSelectedStudent(prev => ({...prev, meta: {...prev.meta, payment: e.target.value}}));
+                      }}
+                      className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 cursor-pointer"
+                   >
+                     <option value="Pending">En attente</option>
+                     <option value="Validated">Validé</option>
+                   </select>
+                 </div>
+                 
+                 <div className="flex items-center justify-between">
+                   <span className="text-xs font-medium text-slate-600">Statut Permis</span>
+                   <select 
+                      value={meta.license}
+                      onChange={(e) => {
+                        updateStudentMeta(selectedStudent.email, 'license', e.target.value);
+                        setSelectedStudent(prev => ({...prev, meta: {...prev.meta, license: e.target.value}}));
+                      }}
+                      className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 cursor-pointer"
+                   >
+                     <option value="Not Started">Non Commencé</option>
+                     <option value="Apprenti">Apprenti</option>
+                     <option value="Probatoire">Probatoire</option>
+                     <option value="Obtained">Obtenu</option>
+                   </select>
+                 </div>
+               </div>
+             </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-8 bg-white overflow-y-auto">
+           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center tracking-tight">
+             <Bookmark className="mr-2 text-blue-500" size={20} />
+             Historique des leçons
+           </h3>
+
+           {/* Next Lesson Highlight */}
+           {nextLesson && (
+             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white mb-8 shadow-lg shadow-blue-500/20 flex items-center justify-between relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+               <div>
+                 <h4 className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Prochain Cours</h4>
+                 <div className="flex items-center text-lg font-bold">
+                   <CalendarDays size={18} className="mr-2" />
+                   {new Date(nextLesson.lesson_date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                   <span className="mx-3 opacity-50">•</span>
+                   <Clock size={18} className="mr-2" />
+                   {nextLesson.start_time.substring(0,5)} - {nextLesson.end_time.substring(0,5)}
+                 </div>
+               </div>
+               <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold tracking-wider">
+                 Planifié
+               </div>
+             </div>
+           )}
+
+           {/* Past Lessons Timeline */}
+           <div>
+             <h4 className="text-sm font-bold text-slate-700 mb-4">Séances enregistrées ({pastLessons.length})</h4>
+             
+             {pastLessons.length === 0 ? (
+               <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                 <FileText size={24} className="text-slate-300 mx-auto mb-2" />
+                 <p className="text-sm font-medium text-slate-500">Aucun historique de leçon pour le moment.</p>
+               </div>
+             ) : (
+               <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-slate-100">
+                 {pastLessons.map((lesson, idx) => (
+                   <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                     <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-slate-100 text-slate-400 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10">
+                       {lesson.status === 'Completed' ? <CheckCircle2 size={16} className="text-emerald-500" /> : <AlertCircle size={16} />}
+                     </div>
+                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow text-left">
+                       <div className="flex items-center justify-between mb-2">
+                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                           {new Date(lesson.lesson_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                         </span>
+                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${lesson.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                           {lesson.status}
+                         </span>
+                       </div>
+                       <p className="text-sm font-medium text-slate-700">Séance de {lesson.start_time.substring(0,5)} à {lesson.end_time.substring(0,5)}</p>
+                       {lesson.notes && (
+                         <div className="mt-3 p-3 bg-slate-50 rounded-xl text-xs font-medium text-slate-600 italic border border-slate-100">
+                           "{lesson.notes}"
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
+           </div>
+        </div>
+      </motion.div>
+    );
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, permissions, hasPermission, setRoleOverride, loading }}>
-      {children}
-    </AuthContext.Provider>
+    <div className="w-full">
+      <AnimatePresence mode="wait">
+        {!selectedStudent ? (
+          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {renderStudentList()}
+          </motion.div>
+        ) : (
+          <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {renderStudentProfile()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export default StudentCRM;
 ```
 
-## Fichier : src/components/ProtectedRoute.jsx
+## Fichier : src/components/settings/SettingsView.jsx
 ```jsx
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../supabaseClient';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, UserPlus, MoreHorizontal, Pencil, Trash, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
+import { ROLES } from '../../config/roles';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, role, loading } = useAuth();
+const MOCK_OTHER_USERS = [
+  { id: 2, name: 'John Doe', phone: '+15141234567', role: ROLES.MANAGER },
+  { id: 3, name: 'Alice Smith', phone: '+14389876543', role: ROLES.INSTRUCTOR }
+];
 
-  if (loading) {
-    return <div className="min-h-screen bg-[#f4f5f7] flex items-center justify-center">Loading dashboard...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (role === 'unauthorized') {
-    return (
-      <div className="min-h-screen bg-[#f4f5f7] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-lg p-8 text-center border border-slate-100">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
-          <p className="text-slate-500 mb-8">
-            Your email address is not authorized to view this dashboard. To gain access, please contact the administrator (suporttest474@gmail.com) to request an invitation.
-          </p>
-          <button 
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = '/login';
-            }}
-            className="w-full bg-slate-900 hover:bg-black text-white font-medium py-3 px-4 rounded-xl transition-colors"
-          >
-            Return to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return children;
-};
-
-export default ProtectedRoute;
-```
-
-## Fichier : src/components/PermissionGuard.jsx
-```jsx
-import React from 'react';
-import { useAuth } from '../context/AuthContext';
-
-const PermissionGuard = ({ permission, children, fallback = null }) => {
-  const { hasPermission } = useAuth();
-
-  if (hasPermission(permission)) {
-    return <>{children}</>;
-  }
-
-  return fallback ? <>{fallback}</> : null;
-};
-
-export default PermissionGuard;
-```
-
-## Fichier : src/config/roles.js
-```jsx
-export const ROLES = {
-  OWNER: 'Owner',
-  MANAGER: 'Manager',
-  SECRETARY: 'Secretary',
-  INSTRUCTOR: 'Instructor',
-  ACCOUNTANT: 'Accountant',
-  STANDARD_USER: 'Standard User',
-};
-
-// Granular permissions
-export const PERMISSIONS = {
-  // Students (Customers)
-  STUDENTS_VIEW: 'students:view',
-  STUDENTS_CREATE: 'students:create',
-  STUDENTS_EDIT: 'students:edit',
-  STUDENTS_DELETE: 'students:delete',
-  STUDENTS_EXPORT: 'students:export',
-
-  // Bookings
-  BOOKINGS_VIEW: 'bookings:view',
-  BOOKINGS_CREATE: 'bookings:create',
-  BOOKINGS_EDIT: 'bookings:edit',
-  BOOKINGS_CANCEL: 'bookings:cancel',
-  BOOKINGS_EXPORT: 'bookings:export',
-
-  // Finance/Payments
-  PAYMENTS_VIEW: 'payments:view',
-  PAYMENTS_RECORD: 'payments:record',
-  PAYMENTS_REFUND: 'payments:refund',
-  PAYMENTS_EXPORT: 'payments:export',
-  INVOICES_CREATE: 'invoices:create',
-  RECEIPTS_PRINT: 'receipts:print',
-
-  // Reports
-  REPORTS_VIEW: 'reports:view',
-  REPORTS_DOWNLOAD: 'reports:download',
-
-  // Admin & Settings
-  USERS_MANAGE: 'users:manage',
-  SETTINGS_EDIT: 'settings:edit',
-  ROLES_MANAGE: 'roles:manage',
-  INTEGRATIONS_MANAGE: 'integrations:manage',
-  AUDIT_LOGS_VIEW: 'audit_logs:view',
+const SettingsView = () => {
+  const { role: currentRole, setRoleOverride } = useAuth();
   
-  // Instructors
-  LESSONS_VALIDATE: 'lessons:validate',
-  LESSONS_NOTES: 'lessons:notes',
-  STUDENT_PROGRESS: 'student:progress',
+  const [activeTab, setActiveTab] = useState('users');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // First user is always the current session user to allow dynamic testing
+  const [users, setUsers] = useState([
+    { id: 1, name: 'Ton Compte (Test Actif)', phone: '+1 (514) ***-****', role: currentRole, isCurrentUser: true },
+    ...MOCK_OTHER_USERS
+  ]);
+  
+  // Sync if role changes elsewhere
+  useEffect(() => {
+    setUsers(prev => prev.map(u => u.isCurrentUser ? { ...u, role: currentRole } : u));
+  }, [currentRole]);
+  
+  // Menu state
+  const [menuOpenForId, setMenuOpenForId] = useState(null);
+  const menuRef = useRef(null);
+
+  // Edit Modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newRole, setNewRole] = useState('');
+
+  // Add Modal state
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ name: '', phone: '', email: '', role: ROLES.INSTRUCTOR });
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpenForId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleEditClick = (user) => {
+    setSelectedUser(user);
+    setNewRole(user.role);
+    setMenuOpenForId(null);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveRole = () => {
+    if (selectedUser.isCurrentUser) {
+      // Actively change the app's role for testing!
+      setRoleOverride(newRole);
+    } else {
+      setUsers(users.map(u => u.id === selectedUser.id ? { ...u, role: newRole } : u));
+    }
+    setEditModalOpen(false);
+  };
+
+  const handleAddUser = () => {
+    const newUser = {
+      id: Date.now(),
+      name: newUserForm.name || 'Sans Nom',
+      phone: newUserForm.phone || 'Non renseigné',
+      role: newUserForm.role
+    };
+    setUsers([...users, newUser]);
+    setAddModalOpen(false);
+    setNewUserForm({ name: '', phone: '', email: '', role: ROLES.INSTRUCTOR });
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.phone.includes(searchQuery)
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto pb-12 w-full">
+      <h2 className="text-3xl font-medium text-slate-800 text-center mb-8">Paramètres</h2>
+
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200 mb-8">
+        <button 
+          onClick={() => setActiveTab('users')}
+          className={`pb-4 px-4 text-sm font-medium uppercase tracking-wide transition-colors relative ${activeTab === 'users' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Gestion Utilisateurs
+          {activeTab === 'users' && (
+            <motion.div layoutId="activeSettingsTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
+          )}
+        </button>
+        <button 
+          onClick={() => setActiveTab('account')}
+          className={`pb-4 px-4 text-sm font-medium uppercase tracking-wide transition-colors relative ${activeTab === 'account' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Informations Compte
+          {activeTab === 'account' && (
+            <motion.div layoutId="activeSettingsTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'users' && (
+        <div className="bg-white rounded-lg">
+          {/* Toolbar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="relative w-full md:w-72">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Rechercher"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-slate-600 shadow-sm"
+              />
+            </div>
+            
+            <div className="flex items-center gap-6 self-end md:self-auto">
+              <div className="flex items-center text-sm text-slate-500">
+                <span className="mr-2">Lignes par page :</span>
+                <span className="font-medium mr-1">10</span>
+                <ChevronDown size={14} className="text-slate-400" />
+              </div>
+              <div className="flex items-center text-sm text-slate-500 gap-2">
+                <span>1-{filteredUsers.length} sur {filteredUsers.length}</span>
+                <div className="flex gap-1 ml-2">
+                  <button className="text-slate-300 cursor-not-allowed">{'<'}</button>
+                  <button className="text-slate-300 cursor-not-allowed">{'>'}</button>
+                </div>
+              </div>
+              <button 
+                onClick={() => setAddModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center shadow-md active:scale-95"
+              >
+                <UserPlus size={16} className="mr-2" />
+                Ajouter un utilisateur
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="w-full">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="py-4 font-medium text-slate-800 text-sm w-1/3">Nom</th>
+                  <th className="py-4 font-medium text-slate-800 text-sm w-1/3">Téléphone</th>
+                  <th className="py-4 font-medium text-slate-800 text-sm w-1/3">Rôle</th>
+                  <th className="py-4 w-10"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 text-sm text-slate-700">{user.name}</td>
+                    <td className="py-4 text-sm text-slate-600">{user.phone}</td>
+                    <td className="py-4 text-sm text-slate-600">{user.role}</td>
+                    <td className="py-4 relative">
+                      <button 
+                        onClick={() => setMenuOpenForId(menuOpenForId === user.id ? null : user.id)}
+                        className="p-1 rounded hover:bg-slate-200 text-slate-600 transition-colors"
+                      >
+                        <MoreHorizontal size={20} />
+                      </button>
+
+                      <AnimatePresence>
+                        {menuOpenForId === user.id && (
+                          <motion.div 
+                            ref={menuRef}
+                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                            transition={{ duration: 0.1 }}
+                            className="absolute right-0 top-12 w-40 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 py-1 z-10"
+                          >
+                            <button 
+                              onClick={() => handleEditClick(user)}
+                              className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center transition-colors"
+                            >
+                              <Pencil size={16} className="mr-3 text-slate-500" />
+                              Modifier
+                            </button>
+                            <button className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center transition-colors">
+                              <Trash size={16} className="mr-3 text-slate-500" />
+                              Supprimer
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </td>
+                  </tr>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="py-8 text-center text-slate-500 text-sm">
+                      Aucun utilisateur trouvé.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'account' && (
+        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 max-w-3xl mx-auto">
+          <h2 className="text-xl font-bold text-slate-800 mb-6">Informations du Compte</h2>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Prénom</label>
+                <input type="text" defaultValue="Kory" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nom</label>
+                <input type="text" defaultValue="SENGHOR" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Numéro de téléphone</label>
+              <input type="tel" defaultValue="+1 (514) 000-0000" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rôle / Accès actuel</label>
+              <input type="text" disabled value={currentRole} className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 font-bold text-blue-600 cursor-not-allowed uppercase" />
+            </div>
+
+            <div className="pt-4 border-t border-slate-100">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-xl transition-all shadow-md active:scale-95">
+                Mettre à jour
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      <AnimatePresence>
+        {editModalOpen && selectedUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-md overflow-hidden border border-slate-100"
+            >
+              <div className="p-6 md:p-8">
+                <h3 className="text-xl font-medium text-slate-800 mb-6">
+                  Modification de {selectedUser.name}
+                </h3>
+                
+                <div className="relative mb-8 mt-2">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-xs font-bold text-blue-600 uppercase tracking-wider">
+                    Nouveau Rôle
+                  </label>
+                  <select 
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-blue-500 focus:border-blue-600 focus:ring-0 rounded-xl text-slate-700 font-medium bg-white appearance-none outline-none transition-colors"
+                  >
+                    {Object.values(ROLES).map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <ChevronDown size={16} className="text-slate-500" />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button 
+                    onClick={() => setEditModalOpen(false)}
+                    className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={handleSaveRole}
+                    className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md active:scale-95"
+                  >
+                    Confirmer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add User Modal */}
+      <AnimatePresence>
+        {addModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-md overflow-hidden border border-slate-100"
+            >
+              <div className="p-6 md:p-8">
+                <h3 className="text-xl font-medium text-slate-800 mb-6">
+                  Ajouter un nouvel utilisateur
+                </h3>
+                
+                <div className="space-y-4 mb-8">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Nom complet</label>
+                    <input 
+                      type="text" 
+                      value={newUserForm.name}
+                      onChange={(e) => setNewUserForm({...newUserForm, name: e.target.value})}
+                      placeholder="Ex: Sophie Martin"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
+                    <input 
+                      type="email" 
+                      value={newUserForm.email}
+                      onChange={(e) => setNewUserForm({...newUserForm, email: e.target.value})}
+                      placeholder="sophie@damedrive.com"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Téléphone</label>
+                    <input 
+                      type="tel" 
+                      value={newUserForm.phone}
+                      onChange={(e) => setNewUserForm({...newUserForm, phone: e.target.value})}
+                      placeholder="+1 (555) 000-0000"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
+                    />
+                  </div>
+
+                  <div className="relative mt-2 pt-2">
+                    <label className="absolute -top-1 left-3 bg-white px-1 text-xs font-bold text-blue-600 uppercase tracking-wider">
+                      Attribuer un rôle
+                    </label>
+                    <select 
+                      value={newUserForm.role}
+                      onChange={(e) => setNewUserForm({...newUserForm, role: e.target.value})}
+                      className="w-full px-4 py-3 border-2 border-blue-500 focus:border-blue-600 focus:ring-0 rounded-xl text-slate-700 font-medium bg-white appearance-none outline-none transition-colors mt-2"
+                    >
+                      {Object.values(ROLES).map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none mt-2">
+                      <ChevronDown size={16} className="text-slate-500" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button 
+                    onClick={() => setAddModalOpen(false)}
+                    className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={handleAddUser}
+                    className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md active:scale-95"
+                  >
+                    Valider l'ajout
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
-export const ROLE_PERMISSIONS = {
-  [ROLES.OWNER]: Object.values(PERMISSIONS), // Owner gets all
-
-  [ROLES.MANAGER]: [
-    PERMISSIONS.STUDENTS_VIEW, PERMISSIONS.STUDENTS_CREATE, PERMISSIONS.STUDENTS_EDIT,
-    PERMISSIONS.BOOKINGS_VIEW, PERMISSIONS.BOOKINGS_CREATE, PERMISSIONS.BOOKINGS_EDIT, PERMISSIONS.BOOKINGS_CANCEL,
-    PERMISSIONS.REPORTS_VIEW, PERMISSIONS.INVOICES_CREATE,
-  ],
-
-  [ROLES.SECRETARY]: [
-    PERMISSIONS.STUDENTS_VIEW, PERMISSIONS.STUDENTS_CREATE, PERMISSIONS.STUDENTS_EDIT,
-    PERMISSIONS.BOOKINGS_VIEW, PERMISSIONS.BOOKINGS_CREATE,
-    PERMISSIONS.PAYMENTS_RECORD, PERMISSIONS.RECEIPTS_PRINT,
-  ],
-
-  [ROLES.INSTRUCTOR]: [
-    PERMISSIONS.STUDENTS_VIEW,
-    PERMISSIONS.LESSONS_VALIDATE, PERMISSIONS.LESSONS_NOTES, PERMISSIONS.STUDENT_PROGRESS,
-  ],
-
-  [ROLES.ACCOUNTANT]: [
-    PERMISSIONS.PAYMENTS_VIEW, PERMISSIONS.PAYMENTS_REFUND, PERMISSIONS.PAYMENTS_EXPORT,
-    PERMISSIONS.INVOICES_CREATE, PERMISSIONS.REPORTS_VIEW, PERMISSIONS.REPORTS_DOWNLOAD,
-  ],
-
-  [ROLES.STANDARD_USER]: [
-    // Standard User permissions are empty by default, assigned manually
-  ],
-};
+export default SettingsView;
 ```
-
-## Fichier : src/supabaseClient.js
-```jsx
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-```
-
