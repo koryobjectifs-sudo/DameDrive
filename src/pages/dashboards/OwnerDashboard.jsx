@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
-import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone, TrendingUp, CalendarDays, ChevronUp, Camera, X, Download, PlusCircle, Activity, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { LogOut, Calendar, DollarSign, Clock, CheckCircle, Search, Bell, Grid, Users, Car, Settings, HelpCircle, User, MapPin, Mail, Phone, TrendingUp, CalendarDays, ChevronUp, ChevronLeft, ChevronRight, Filter, Camera, X, Download, PlusCircle, Activity, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Lock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import SettingsView from '../../components/settings/SettingsView';
+import StudentCRM from '../../components/crm/StudentCRM';
+import FinanceDashboard from '../../components/finance/FinanceDashboard';
 const mockSparklineData = [{v: 40}, {v: 30}, {v: 45}, {v: 50}, {v: 40}, {v: 65}, {v: 74}];
 const mockSparklineData2 = [{v: 60}, {v: 50}, {v: 55}, {v: 70}, {v: 60}, {v: 80}, {v: 96}];
 const mockSparklineData3 = [{v: 20}, {v: 25}, {v: 22}, {v: 30}, {v: 28}, {v: 35}, {v: 30}];
@@ -13,7 +15,8 @@ const mockSparklineData4 = [{v: 80}, {v: 75}, {v: 85}, {v: 90}, {v: 85}, {v: 95}
 const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
 
 import { useAuth } from '../../context/AuthContext';
-import { ROLES } from '../../config/roles';
+import { ROLES, PERMISSIONS } from '../../config/roles';
+import PermissionGuard from '../../components/PermissionGuard';
 
 const OwnerDashboard = () => {
   const { role, setRoleOverride } = useAuth();
@@ -36,7 +39,18 @@ const OwnerDashboard = () => {
   const [newLesson, setNewLesson] = useState({ studentEmail: '', date: '', startTime: '', endTime: '', notes: '' });
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [planningCategory, setPlanningCategory] = useState(null);
-  const [historyCategory, setHistoryCategory] = useState('Broadcasts');
+  const [historyCategory, setHistoryCategory] = useState('All Activity');
+  const [calendarView, setCalendarView] = useState('Jour');
+  const [calendarDate, setCalendarDate] = useState(new Date('2026-08-04'));
+
+  const MOCK_AUDIT_LOGS = [
+    { id: 1, type: 'CREATE', user: 'Jean Marie Kory SENGHOR', role: 'Administrateur', action: 'A ajouté un nouvel utilisateur', target: 'John Doe (Comptable)', date: 'Aujourd\'hui, 14:32', category: 'System & Security', color: 'emerald' },
+    { id: 2, type: 'UPDATE', user: 'Alice Smith', role: 'Manager', action: 'A modifié le planning', target: 'Session conduite - Marc Leblanc', date: 'Aujourd\'hui, 10:15', category: 'Planning', color: 'blue' },
+    { id: 3, type: 'BROADCAST', user: 'Jean Marie Kory SENGHOR', role: 'Administrateur', action: 'A envoyé une communication', target: 'Tous les étudiants (Tips Hiver)', date: 'Hier, 09:41', category: 'Communications', color: 'indigo' },
+    { id: 4, type: 'UPDATE', user: 'John Doe', role: 'Comptable', action: 'A mis à jour le dossier étudiant', target: 'Sophie Martin (Paiement validé)', date: '2 Août 2026, 16:20', category: 'Students & CRM', color: 'blue' },
+    { id: 5, type: 'DELETE', user: 'Alice Smith', role: 'Manager', action: 'A annulé un cours', target: 'Session conduite - Kevin D.', date: '1 Août 2026, 11:05', category: 'Planning', color: 'rose' },
+    { id: 6, type: 'SYSTEM', user: 'Système', role: 'Automatique', action: 'Extraction de données générée', target: 'Rapport Financier Mensuel', date: '1 Août 2026, 01:00', category: 'System & Security', color: 'slate' }
+  ];
   const [newMemberRole, setNewMemberRole] = useState('Assistant');
   const [teamMembers, setTeamMembers] = useState([
     { email: 'suporttest474@gmail.com', role: 'Admin', access: 'Full Access (Earnings, Settings)' },
@@ -300,6 +314,35 @@ const OwnerDashboard = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  const handleExportCSV = () => {
+    if (filteredBookings.length === 0) return;
+    const headers = ['Nom', 'Email', 'Date', 'Forfait', 'Montant', 'Statut'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredBookings.map(b => {
+        const meta = studentMeta[b.email] || {};
+        const status = meta.payment === 'Pending' ? 'En attente' : 'Payé';
+        const amount = b.total_amount ? String(b.total_amount).replace(/[^0-9.-]+/g,"") : 0;
+        return `"${b.name}","${b.email}","${new Date(b.created_at).toLocaleDateString()}","${b.package || 'Standard'}","${amount}","${status}"`;
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `bookings_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    showToast('Export CSV réussi !', 'success');
+    setQuickActionModal({ isOpen: false, action: null });
+  };
+
+  const handleSendReminders = () => {
+    const pendingCount = bookings.filter(b => (studentMeta[b.email]?.payment || 'Pending') === 'Pending').length;
+    showToast(`${pendingCount} rappels envoyés avec succès !`, 'success');
+    setQuickActionModal({ isOpen: false, action: null });
+  };
+
   const handleScheduleLesson = async (e) => {
     e.preventDefault();
     try {
@@ -320,15 +363,19 @@ const OwnerDashboard = () => {
       
       if (error) throw error;
 
-      // Send automated email to the student
-      const emailMessage = `Hello ${student.name},\n\nYour driving lesson has been successfully scheduled!\n\n📅 Date: ${newLesson.date}\n⏰ Time: ${newLesson.startTime} - ${newLesson.endTime}\n📝 Notes: ${newLesson.notes || 'None'}\n\nPlease make sure to arrive on time. If you need to cancel or reschedule, please reply to this email directly.\n\nBest regards,\nThe DameDrive Team`;
-      
-      showToast('Scheduling lesson and sending email...', 'info');
-      await sendEmailJSNotification(student.email, "Your Driving Lesson is Scheduled! 🚗", emailMessage);
-
+      // UX Improvement: Close modal and reset form instantly
       setShowScheduleModal(false);
       setNewLesson({ studentEmail: '', date: '', startTime: '', endTime: '', notes: '' });
-      fetchBookings(); // Refreshes everything including lessons
+      showToast('Session planifiée avec succès !', 'success');
+      fetchBookings(); // Refreshes the grid
+
+      // Send automated email to the student asynchronously
+      const emailMessage = `Hello ${student.name},\n\nYour driving lesson has been successfully scheduled!\n\n📅 Date: ${newLesson.date}\n⏰ Time: ${newLesson.startTime} - ${newLesson.endTime}\n📝 Notes: ${newLesson.notes || 'None'}\n\nPlease make sure to arrive on time. If you need to cancel or reschedule, please reply to this email directly.\n\nBest regards,\nThe DameDrive Team`;
+      
+      sendEmailJSNotification(student.email, "Your Driving Lesson is Scheduled! 🚗", emailMessage)
+        .then(() => showToast("Email de confirmation envoyé à l'élève.", 'success'))
+        .catch(err => console.error("Email send failed:", err));
+        
     } catch (error) {
       showToast("Failed to schedule lesson: " + error.message, 'error');
     }
@@ -685,19 +732,23 @@ const OwnerDashboard = () => {
                       <button onClick={() => handleWhatsApp(b.phone, b.name)} className="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 font-medium text-xs rounded-lg transition-colors">
                         WhatsApp
                       </button>
-                      <select 
-                        value={b.status || 'pending'} 
-                        onChange={(e) => handleBookingAction(b.id, e.target.value)}
-                        className="px-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Mark Paid</option>
-                        <option value="completed">Completed</option>
-                        <option value="canceled">Canceled</option>
-                      </select>
-                      <button onClick={() => handleDeleteBooking(b.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-medium text-xs rounded-lg transition-colors">
-                        Delete
-                      </button>
+                      <PermissionGuard permission={PERMISSIONS.BOOKINGS_EDIT}>
+                        <select 
+                          value={b.status || 'pending'} 
+                          onChange={(e) => handleBookingAction(b.id, e.target.value)}
+                          className="px-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Mark Paid</option>
+                          <option value="completed">Completed</option>
+                          <option value="canceled">Canceled</option>
+                        </select>
+                      </PermissionGuard>
+                      <PermissionGuard permission={PERMISSIONS.BOOKINGS_CANCEL}>
+                        <button onClick={() => handleDeleteBooking(b.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-medium text-xs rounded-lg transition-colors">
+                          Delete
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>
@@ -750,35 +801,37 @@ const OwnerDashboard = () => {
         </motion.div>
 
         {/* Earnings Card */}
-        <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
-          <div className="flex justify-between items-start mb-2 z-10 relative">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
-                <DollarSign size={16} strokeWidth={2.5} />
-              </div>
-              <div>
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Gross Earnings</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-xl font-medium text-slate-800 tracking-tight leading-none">${totalEarnings}</p>
+        <PermissionGuard permission={PERMISSIONS.PAYMENTS_VIEW} showLock={true} lockMessage="Données Financières Masquées">
+          <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
+            <div className="flex justify-between items-start mb-2 z-10 relative">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+                  <DollarSign size={16} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Gross Earnings</p>
+                  <div className="flex items-baseline space-x-2">
+                    <p className="text-xl font-medium text-slate-800 tracking-tight leading-none">${totalEarnings}</p>
+                  </div>
                 </div>
               </div>
+              <HelpCircle size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />
             </div>
-            <HelpCircle size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />
-          </div>
-          <div className="flex items-end justify-between mt-auto pt-2 z-10 relative">
-            <div className="text-[10px] font-medium text-emerald-500 flex items-center whitespace-nowrap overflow-visible">
-              <DollarSign size={12} className="mr-1" />
-              ${totalBookings > 0 ? (totalEarnings / totalBookings).toFixed(0) : 0} <span className="text-slate-400 font-medium ml-1 ">avg per booking</span>
+            <div className="flex items-end justify-between mt-auto pt-2 z-10 relative">
+              <div className="text-[10px] font-medium text-emerald-500 flex items-center whitespace-nowrap overflow-visible">
+                <DollarSign size={12} className="mr-1" />
+                ${totalBookings > 0 ? (totalEarnings / totalBookings).toFixed(0) : 0} <span className="text-slate-400 font-medium ml-1 ">avg per booking</span>
+              </div>
+              <div className="w-14 h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={mockSparklineData2}>
+                    <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="w-14 h-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockSparklineData2}>
-                  <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </PermissionGuard>
 
         {/* Pending Card */}
         <motion.div whileHover={{ y: -4 }} className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between transition-all cursor-pointer min-h-[130px] relative overflow-hidden">
@@ -910,25 +963,32 @@ const OwnerDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-slate-800">Earnings Overview</h3>
+            <h3 className="text-lg font-medium text-slate-800">Revenus vs Dépenses (Évolutif)</h3>
           </div>
-          <div className="h-72 mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} tickFormatter={(val) => `$${val}`} dx={-10} />
-                <Tooltip cursor={{stroke: '#e2e8f0', strokeWidth: 2}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 600 }} formatter={(value) => [`$${value}`, ""]} />
-                <Area type="monotone" dataKey="current" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorCurrent)" activeDot={{r: 6, strokeWidth: 0, fill: '#1d4ed8'}} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <PermissionGuard permission={PERMISSIONS.PAYMENTS_VIEW} showLock={true} lockMessage="Graphique Financier Masqué">
+            <div className="h-72 mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData.map(item => ({...item, expenses: item.current ? Math.floor(item.current * (0.3 + Math.random() * 0.2)) : 0}))}>
+                  <defs>
+                    <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} tickFormatter={(val) => `$${val}`} dx={-10} />
+                  <Tooltip cursor={{stroke: '#e2e8f0', strokeWidth: 2}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 600 }} formatter={(value) => [`$${value}`, ""]} />
+                  <Area type="monotone" name="Revenus" dataKey="current" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorCurrent)" activeDot={{r: 6, strokeWidth: 0, fill: '#1d4ed8'}} />
+                  <Area type="monotone" name="Dépenses" dataKey="expenses" stroke="#ef4444" strokeWidth={4} fillOpacity={1} fill="url(#colorExpenses)" activeDot={{r: 6, strokeWidth: 0, fill: '#b91c1c'}} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </PermissionGuard>
         </div>
         
         <div className="flex flex-col space-y-4">
@@ -940,11 +1000,18 @@ const OwnerDashboard = () => {
                 <span className="font-medium text-[11px] leading-tight">Broadcast</span>
                 <span className="text-[9px] font-medium text-blue-600/70 mt-0.5 leading-tight">Message clients</span>
               </button>
-              <button onClick={() => setQuickActionModal({ isOpen: true, action: 'Export' })} className="flex flex-col items-center justify-center text-center p-3 bg-emerald-50/80 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100/50">
-                <Download size={16} className="mb-1" /> 
-                <span className="font-medium text-[11px] leading-tight">Export Data</span>
-                <span className="text-[9px] font-medium text-emerald-600/70 mt-0.5 leading-tight">CSV / Excel</span>
-              </button>
+              <PermissionGuard permission={PERMISSIONS.BOOKINGS_EXPORT} fallback={
+                <button disabled className="flex flex-col items-center justify-center text-center p-3 bg-slate-50 text-slate-400 rounded-xl cursor-not-allowed shadow-sm border border-slate-100/50">
+                  <Lock size={16} className="mb-1" /> 
+                  <span className="font-medium text-[11px] leading-tight">Export Data</span>
+                </button>
+              }>
+                <button onClick={() => setQuickActionModal({ isOpen: true, action: 'Export' })} className="flex flex-col items-center justify-center text-center p-3 bg-emerald-50/80 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100/50">
+                  <Download size={16} className="mb-1" /> 
+                  <span className="font-medium text-[11px] leading-tight">Export Data</span>
+                  <span className="text-[9px] font-medium text-emerald-600/70 mt-0.5 leading-tight">CSV / Excel</span>
+                </button>
+              </PermissionGuard>
               <button onClick={() => setQuickActionModal({ isOpen: true, action: 'New Package' })} className="flex flex-col items-center justify-center text-center p-3 bg-purple-50/80 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors shadow-sm border border-purple-100/50">
                 <PlusCircle size={16} className="mb-1" /> 
                 <span className="font-medium text-[11px] leading-tight">New Package</span>
@@ -1050,106 +1117,288 @@ const OwnerDashboard = () => {
     );
   };
 
-  const renderEarnings = () => (
-    <div className="max-w-7xl mx-auto space-y-4">
-      {renderFilterBar()}
-      <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-        <h2 className="text-xl font-medium text-slate-800 mb-1 tracking-tight">Revenue by Package</h2>
-        <p className="text-3xl font-medium text-blue-600 mb-8 tracking-tight">${totalEarnings} <span className="text-xs font-medium text-slate-400 uppercase tracking-widest ml-2">Total Value</span></p>
-        
-        <div className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={packageEarnings} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <defs>
-                <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} tickFormatter={(val) => `$${val}`} dx={-10} />
-              <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgb(0 0 0 / 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)', fontWeight: 800, padding: '12px 20px' }} formatter={(value) => [`$${value}`, "Revenue"]} />
-              <Bar dataKey="earnings" fill="url(#colorEarnings)" radius={[8, 8, 8, 8]} barSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderPlanning = () => {
+    const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8:00 to 18:00
+    const instructors = ['Kory SENGHOR', 'John DOE', 'Sarah SMITH'];
+    const weekDays = ['Lun 3', 'Mar 4', 'Mer 5', 'Jeu 6', 'Ven 7', 'Sam 8', 'Dim 9'];
+
+    const handlePrevDay = () => setCalendarDate(prev => new Date(prev.setDate(prev.getDate() - 1)));
+    const handleNextDay = () => setCalendarDate(prev => new Date(prev.setDate(prev.getDate() + 1)));
+
     return (
-      <div className="max-w-5xl mx-auto space-y-6 relative">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto space-y-4 relative">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-medium text-slate-800 tracking-tight">Lesson Schedule</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">Manage your upcoming driving sessions</p>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Planning Interactif</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">Gérez les leçons et disponibilités de l'équipe.</p>
           </div>
+          
           <button 
             onClick={() => setShowScheduleModal(true)}
-            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-sm"
+            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
           >
-            <CalendarDays size={18} className="mr-2" />
-            Schedule Lesson
+            <PlusCircle size={18} className="mr-2" />
+            Planifier une session
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Date & Time</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Student</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Instructor</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-3 text-right text-[10px] font-medium text-slate-400 uppercase tracking-widest">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {lessons.length === 0 ? (
-                  <tr><td colSpan="5" className="px-6 py-12 text-center text-[13px] font-medium text-slate-500">No lessons scheduled yet</td></tr>
-                ) : lessons.map((lesson) => (
-                  <tr key={lesson.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-800">{new Date(lesson.lesson_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-                      <div className="text-xs font-medium text-slate-500 flex items-center mt-1">
-                        <Clock size={12} className="mr-1" /> {lesson.start_time.substring(0,5)} - {lesson.end_time.substring(0,5)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-800">{lesson.student_name}</div>
-                      <div className="text-xs text-slate-400">{lesson.student_email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">
-                      {lesson.instructor_email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${
-                        lesson.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                        lesson.status === 'Cancelled' ? 'bg-red-50 text-red-600 border-red-100' :
-                        'bg-blue-50 text-blue-600 border-blue-100'
-                      }`}>
-                        {lesson.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+        <div className="flex flex-col xl:flex-row gap-6">
+          
+          {/* Left Column: Calendar Main Area */}
+          <div className="flex-1 min-w-0 flex flex-col">
+             
+             {/* Unified Header matching Inspiration */}
+             <div className="flex flex-col md:flex-row items-center justify-between bg-white px-5 py-3 rounded-t-xl border border-slate-200 border-b-0 gap-4">
+                 
+                 {/* Left: Date Navigation */}
+                 <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-slate-600 w-16 hidden sm:block">
+                      {calendarView === 'Jour' ? 'Journée' : 'Semaine'}
+                    </span>
+                    <button onClick={handlePrevDay} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"><ChevronLeft size={20}/></button>
+                    <h3 className="text-[15px] font-bold text-slate-800 min-w-[180px] text-center capitalize">
+                      {calendarView === 'Jour' 
+                        ? calendarDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                        : '3 Août - 9 Août 2026'
+                      }
+                    </h3>
+                    <button onClick={handleNextDay} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"><ChevronRight size={20}/></button>
+                 </div>
+
+                 {/* Right: Controls & Filters */}
+                 <div className="flex items-center gap-2 flex-wrap justify-center">
+                    
+                    {/* Date Picker Button (Calendar Icon) */}
+                    <div className="relative group" title="Sauter à une date exacte">
+                      <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md border border-slate-200 transition-colors shadow-sm relative overflow-hidden flex items-center justify-center h-[38px] w-[38px]">
+                        <Calendar size={16} />
+                        <input 
+                          type="date" 
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          value={`${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(calendarDate.getDate()).padStart(2, '0')}`}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const [year, month, day] = e.target.value.split('-');
+                              setCalendarDate(new Date(year, month - 1, day));
+                            }
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Filter / Aggregation Dropdown */}
+                    <div className="relative group h-[38px]" title="Filtre (Agrégation)">
+                       <select className="h-full appearance-none pl-8 pr-3 bg-white border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm focus:outline-none">
+                         <option value="instructor">Agrégation : Instructeur</option>
+                         <option value="vehicle">Agrégation : Véhicule</option>
+                         <option value="student">Agrégation : Élève</option>
+                       </select>
+                       <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+                    {/* Today Button */}
+                    <button 
+                      onClick={() => setCalendarDate(new Date())} 
+                      className="h-[38px] px-4 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-sm"
+                    >
+                      Aujourd'hui
+                    </button>
+                    
+                    {/* View Switcher Dropdown (Day/Week/Month) */}
+                    <div className="relative h-[38px]">
                       <select 
-                        value={lesson.status}
-                        onChange={(e) => handleLessonAction(lesson.id, e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-xs rounded-lg transition-colors outline-none cursor-pointer"
+                        value={calendarView}
+                        onChange={(e) => setCalendarView(e.target.value)}
+                        className="h-full appearance-none px-4 pr-8 bg-white border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm focus:outline-none"
                       >
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Jour">Day</option>
+                        <option value="Semaine">Week</option>
+                        <option value="Mois">Month</option>
                       </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                    </div>
+
+                 </div>
+             </div>
+
+        {/* Calendar Grid */}
+        <div className="bg-white rounded-b-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-t-0 border-slate-100 overflow-hidden overflow-x-auto relative">
+          <div className="min-w-[900px]">
+            
+            {calendarView === 'Jour' ? (
+              <>
+                {/* Header Row (Instructors) */}
+                <div className="grid grid-cols-[80px_1fr_1fr_1fr] bg-slate-50 border-b border-slate-100">
+                  <div className="p-4 border-r border-slate-100"></div>
+                  {instructors.map(inst => (
+                    <div key={inst} className="p-4 border-r border-slate-100 text-center font-bold text-slate-700 flex flex-col items-center">
+                      <div className="w-10 h-10 bg-white rounded-full shadow-sm mb-2 flex items-center justify-center text-blue-600 font-bold border border-slate-200">
+                        {inst.charAt(0)}{inst.split(' ')[1]?.charAt(0)}
+                      </div>
+                      {inst}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Time Slots (Jour) */}
+                <div className="relative">
+                   {/* 09:00 - 11:00 (Kory) */}
+                   <div className="absolute top-[61px] left-[80px] w-[calc(33.33%-80px/3-4px)] h-[118px] bg-blue-50 border border-blue-200 rounded-xl m-[2px] p-3 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <div className="flex justify-between items-start mb-1">
+                         <span className="text-xs font-bold text-blue-700">09:00 - 11:00</span>
+                         <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      </div>
+                      <div className="font-bold text-slate-800 text-sm">Alexandre Dupont</div>
+                      <div className="text-[11px] text-blue-600 font-medium">Session Régulière</div>
+                      <div className="text-xs text-slate-500 mt-auto flex items-center"><Car size={12} className="mr-1"/> Honda Civic</div>
+                   </div>
+
+                   {/* 11:00 - 12:00 (John) */}
+                   <div className="absolute top-[181px] left-[calc(80px+(100%-80px)/3)] w-[calc(33.33%-80px/3-4px)] h-[58px] bg-emerald-50 border border-emerald-200 rounded-xl m-[2px] p-2 z-10 hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="flex justify-between items-center h-full">
+                         <div>
+                           <div className="font-bold text-slate-800 text-xs truncate max-w-[120px]">Marie Curie</div>
+                           <span className="text-[10px] font-bold text-emerald-700">11:00 - 12:00</span>
+                         </div>
+                         <div className="text-[10px] text-slate-600 font-medium flex items-center bg-white/60 px-1.5 py-0.5 rounded"><Car size={10} className="mr-1"/> Yaris (M)</div>
+                      </div>
+                   </div>
+
+                   {/* 13:00 - 15:00 (Sarah) */}
+                   <div className="absolute top-[301px] left-[calc(80px+2*(100%-80px)/3)] w-[calc(33.33%-80px/3-4px)] h-[118px] bg-purple-50 border border-purple-200 rounded-xl m-[2px] p-3 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <div className="flex justify-between items-start mb-1">
+                         <span className="text-xs font-bold text-purple-700">13:00 - 15:00</span>
+                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </div>
+                      <div className="font-bold text-slate-800 text-sm">Jean Valjean</div>
+                      <div className="text-[11px] text-purple-600 font-medium mt-1">Examen Pratique SAAQ</div>
+                      <div className="text-xs text-slate-500 mt-auto flex items-center"><Car size={12} className="mr-1"/> Corolla</div>
+                   </div>
+
+                   {/* Overlapping Mock (Kory Busy Day) */}
+                   {/* 14:00 - 15:30 */}
+                   <div className="absolute top-[361px] left-[80px] w-[calc((33.33%-80px/3-4px)/2)] h-[88px] bg-orange-50 border border-orange-200 rounded-xl m-[2px] p-2 z-10 hover:shadow-md transition-shadow cursor-pointer flex flex-col">
+                      <span className="text-[10px] font-bold text-orange-700 mb-1">14:00 - 15:30</span>
+                      <div className="font-bold text-slate-800 text-xs truncate">Sophie L.</div>
+                   </div>
+                   {/* 14:30 - 16:00 (Overlap) */}
+                   <div className="absolute top-[391px] left-[calc(80px+((33.33%-80px/3-4px)/2))] w-[calc((33.33%-80px/3-4px)/2)] h-[88px] bg-blue-50 border border-blue-200 rounded-xl m-[2px] p-2 z-20 hover:shadow-md shadow-lg transition-shadow cursor-pointer flex flex-col">
+                      <span className="text-[10px] font-bold text-blue-700 mb-1">14:30 - 16:00</span>
+                      <div className="font-bold text-slate-800 text-xs truncate">Kevin D.</div>
+                   </div>
+
+                   {/* Background Grid Lines (Jour) */}
+                   {hours.map((_, i) => (
+                     <div key={i} className="flex border-b border-slate-100 h-[60px]">
+                       <div className="w-[80px] border-r border-slate-100 flex items-start justify-end pr-2 pt-2 text-xs font-medium text-slate-400 bg-white relative z-0">
+                         {i + 8}:00
+                       </div>
+                       <div className="flex-1 border-r border-slate-100 border-dashed"></div>
+                       <div className="flex-1 border-r border-slate-100 border-dashed"></div>
+                       <div className="flex-1"></div>
+                     </div>
+                   ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Header Row (Week Days) */}
+                <div className="grid grid-cols-[80px_repeat(7,minmax(0,1fr))] bg-slate-50 border-b border-slate-100">
+                  <div className="p-3 border-r border-slate-100"></div>
+                  {weekDays.map(day => (
+                    <div key={day} className="p-3 border-r border-slate-100 text-center text-xs font-bold text-slate-600 uppercase">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Slots (Semaine) */}
+                <div className="relative">
+                   {/* Week Mock Data */}
+                   {/* Monday 09:00 - 11:00 */}
+                   <div className="absolute top-[31px] left-[80px] w-[calc((100%-80px)/7-4px)] h-[58px] bg-blue-50 border border-blue-200 rounded-lg m-[2px] p-1.5 z-10 hover:shadow-md cursor-pointer overflow-hidden">
+                      <div className="text-[9px] font-bold text-blue-700">09:00 - 11:00 (Kory)</div>
+                      <div className="font-bold text-slate-800 text-[10px] truncate">Alexandre D.</div>
+                   </div>
+                   
+                   {/* Tuesday 14:00 - 16:00 */}
+                   <div className="absolute top-[181px] left-[calc(80px+(100%-80px)/7)] w-[calc((100%-80px)/7-4px)] h-[58px] bg-emerald-50 border border-emerald-200 rounded-lg m-[2px] p-1.5 z-10 hover:shadow-md cursor-pointer overflow-hidden">
+                      <div className="text-[9px] font-bold text-emerald-700">14:00 - 16:00 (John)</div>
+                      <div className="font-bold text-slate-800 text-[10px] truncate">Marie C.</div>
+                   </div>
+
+                  {/* Reduce height per hour to 30px for Week view to make it "smaller" like Google Calendar week view */}
+                  {hours.map(hour => (
+                    <div key={hour} className="grid grid-cols-[80px_repeat(7,minmax(0,1fr))] border-b border-slate-100 h-[30px] group">
+                      <div className="px-2 border-r border-slate-100 text-[10px] font-bold text-slate-400 text-right pr-3 -mt-2">
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="border-r border-slate-100/50 group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                      <div className="group-hover:bg-slate-50/30 cursor-crosshair"></div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
           </div>
+        </div>
+      </div>
+      
+      {/* Right Column: Vertical Legend / Actions Center */}
+      <div className="w-full xl:w-72 space-y-4">
+             <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-5 sticky top-6">
+               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
+                 <AlertCircle size={14} className="mr-2" />
+                 Centre d'Action
+               </h3>
+               
+               <div className="space-y-3">
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-rose-800 text-xs">Conflits (Overlap)</h4>
+                      <p className="text-[10px] text-rose-600 mt-1 leading-tight font-medium">2 leçons se chevauchent cet après-midi (Kory).</p>
+                    </div>
+                 </button>
+
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-amber-800 text-xs">À Confirmer</h4>
+                      <p className="text-[10px] text-amber-600 mt-1 leading-tight font-medium">1 Examen SAAQ en attente (Demain).</p>
+                    </div>
+                 </button>
+
+                 <button className="w-full flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors text-left group">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                    <div>
+                      <h4 className="font-bold text-slate-700 text-xs">Disponibilités</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-tight font-medium">John et Sarah ont des créneaux libres aujourd'hui.</p>
+                    </div>
+                 </button>
+               </div>
+               
+               <div className="mt-6 pt-5 border-t border-slate-100">
+                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Légende</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-blue-100 border border-blue-200 mr-2"></span> Session Régulière</div>
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-200 mr-2"></span> Examen SAAQ</div>
+                    <div className="flex items-center text-[11px] font-medium text-slate-600"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-200 mr-2"></span> Évaluation Initiale</div>
+                  </div>
+               </div>
+             </div>
+          </div>
+
         </div>
 
         {/* Schedule Modal */}
@@ -1296,12 +1545,8 @@ const OwnerDashboard = () => {
             <button onClick={() => setActiveTab('Students')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Students' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
               <Users className={`mr-3 ${activeTab === 'Students' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Students
             </button>
-            <button onClick={() => setActiveTab('Earnings')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Earnings' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
-              <DollarSign className={`mr-3 ${activeTab === 'Earnings' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Earnings
-            </button>
-          
                       <button onClick={() => setActiveTab('Finance')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'Finance' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
-              <TrendingUp className={`mr-3 ${activeTab === 'Finance' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Finance
+              <TrendingUp className={`mr-3 ${activeTab === 'Finance' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> Finances
             </button>
                       <button onClick={() => setActiveTab('History')} className={`w-full flex items-center px-3 py-3 rounded-xl transition-all ${activeTab === 'History' ? 'bg-blue-600/10 text-blue-400 font-medium shadow-inner' : 'hover:bg-white/5 hover:text-white font-medium text-slate-400'}`}>
               <Activity className={`mr-3 ${activeTab === 'History' ? 'text-blue-500' : 'text-slate-500'}`} size={20} strokeWidth={2} /> History & Logs
@@ -1385,6 +1630,8 @@ const OwnerDashboard = () => {
           <div className="flex items-center">
             <h2 className="text-xl font-semibold text-slate-800 hidden sm:block">{activeTab}</h2>
           </div>
+          <div className="flex items-center gap-4">
+          </div>
         </header>
 
         {/* Dynamic Tab Content */}
@@ -1398,241 +1645,51 @@ const OwnerDashboard = () => {
                </motion.div>
             )}
             {activeTab === 'Planning' && <motion.div key="Planning" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>{renderPlanning()}</motion.div>}
-            {activeTab === 'Earnings' && <motion.div key="Earnings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>{renderEarnings()}</motion.div>}
+            {activeTab === 'Earnings' && (
+              <motion.div key="Earnings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full">
+                <FinanceDashboard 
+                  bookings={bookings} 
+                  studentMeta={studentMeta} 
+                  chartData={chartData} 
+                  packageEarnings={packageEarnings} 
+                  totalEarnings={totalEarnings} 
+                />
+              </motion.div>
+            )}
             
             {activeTab === 'Students' && (
               <motion.div key="Students" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-7xl mx-auto space-y-6">
-              <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100">
-                  <h3 className="text-lg font-medium text-slate-800 tracking-tight">Student Directory ({uniqueStudents.length})</h3>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Automatically derived from booking history</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50/50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Student Name</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Contact Info</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Payment</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">Progress</th>
-                        <th className="px-6 py-3 text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest">License Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {uniqueStudents.map((s, idx) => {
-                        const meta = studentMeta[s.email] || { payment: 'Pending', progress: 0, license: 'Not Started' };
-                        return (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-all border-b border-slate-50 last:border-none group">
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-50 to-purple-100 text-indigo-600 flex items-center justify-center font-medium uppercase shadow-inner shrink-0">
-                                {s.name.charAt(0)}
-                              </div>
-                              <div className="ml-4 font-medium text-slate-800">{s.name}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <div className="text-xs font-medium text-slate-600 flex items-center"><Mail size={14} className="mr-2 text-slate-400"/> {s.email}</div>
-                            <div className="text-xs font-medium text-slate-500 flex items-center mt-1.5"><Phone size={14} className="mr-2 text-slate-300"/> {s.phone || 'N/A'}</div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.payment}
-                              onChange={(e) => updateStudentMeta(s.email, 'payment', e.target.value)}
-                              className="text-xs font-medium bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700"
-                            >
-                              <option value="Pending">Pending</option>
-                              <option value="Validated">Validated</option>
-                            </select>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.progress}
-                              onChange={(e) => updateStudentMeta(s.email, 'progress', parseInt(e.target.value))}
-                              className="text-xs font-medium bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700"
-                            >
-                              <option value="0">0%</option>
-                              <option value="25">25%</option>
-                              <option value="50">50%</option>
-                              <option value="75">75%</option>
-                              <option value="100">100%</option>
-                            </select>
-                            <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                              <div className="h-full bg-blue-500" style={{ width: `${meta.progress}%` }}></div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-2.5 whitespace-nowrap">
-                            <select
-                              value={meta.license}
-                              onChange={(e) => updateStudentMeta(s.email, 'license', e.target.value)}
-                              className={`text-[11px] font-medium uppercase tracking-wider px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none ${
-                                meta.license === 'Obtained' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' :
-                                meta.license === 'In Progress' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-                                'bg-slate-50 border border-slate-200 text-slate-600'
-                              }`}
-                            >
-                              <option value="Not Started">Not Started</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Courses Completed">Courses Completed</option>
-                              <option value="Obtained">Obtained</option>
-                            </select>
-                          </td>
-                        </tr>
-                      )})}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
+                <StudentCRM 
+                  students={uniqueStudents} 
+                  studentMeta={studentMeta} 
+                  lessons={lessons} 
+                  updateStudentMeta={updateStudentMeta} 
+                />
+              </motion.div>
           )}
 
           
-          {activeTab === 'Finance' && (
-            <motion.div key="Finance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-6xl mx-auto space-y-6 pb-12">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Total Revenue</p>
-                  <p className="text-3xl font-medium text-slate-800">${realTotalRevenue.toLocaleString()}</p>
-                  <p className="text-xs text-emerald-500 font-medium mt-2 flex items-center"><TrendingUp size={12} className="mr-1" /> +14% from last month</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Pending Payments</p>
-                  <p className="text-3xl font-medium text-slate-800">$2,450</p>
-                  <p className="text-xs text-amber-500 font-medium mt-2">12 students pending</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Expenses</p>
-                  <p className="text-3xl font-medium text-slate-800">$840</p>
-                  <p className="text-xs text-slate-400 font-medium mt-2">Fuel & Maintenance</p>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-emerald-400 flex flex-col justify-center text-white relative overflow-hidden">
-                  <DollarSign className="absolute -right-4 -bottom-4 opacity-10" size={100} />
-                  <p className="text-[11px] font-medium text-emerald-100 uppercase tracking-wider mb-2 relative z-10">Net Profit</p>
-                  <p className="text-3xl font-bold relative z-10">${realNetProfit.toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-xl font-medium text-slate-800">Team Management & Roles</h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Assign roles to restrict access to sensitive data and segment responsibilities.</p>
-                  </div>
-                </div>
-
-                {/* Role Explanations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Owner / Manager</span>
-                    <p className="text-xs text-slate-600 font-medium">Full access to Dashboard, Finance, Settings, and all student data. Can invite other members.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Secretary</span>
-                    <p className="text-xs text-slate-600 font-medium">Access to Bookings, Planning, and Client Communication. No access to Finance or Settings.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Instructor</span>
-                    <p className="text-xs text-slate-600 font-medium">Can only view their own assigned students and personal schedule. Cannot see overall revenue.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Accountant</span>
-                    <p className="text-xs text-slate-600 font-medium">Access strictly limited to the Finance tab and earnings exports.</p>
-                  </div>
-                </div>
-
-                {/* Add New Member Form */}
-                <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-200 mb-8">
-                  <h3 className="text-sm font-medium text-slate-800 mb-4">Invite New Member</h3>
-                  <form onSubmit={handleAddMember} className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                      <input 
-                        type="email" 
-                        required
-                        value={newMemberEmail}
-                        onChange={(e) => setNewMemberEmail(e.target.value)}
-                        placeholder="colleague@damedrive.com"
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
-                      />
-                    </div>
-                    <div className="w-full md:w-64">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Assign Role</label>
-                      <select 
-                        value={newMemberRole}
-                        onChange={(e) => setNewMemberRole(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
-                      >
-                        <option value="Manager">Manager</option>
-                        <option value="Secretary">Secretary</option>
-                        <option value="Instructor">Instructor</option>
-                        <option value="Accountant">Accountant</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition-all whitespace-nowrap">
-                      Send Invite
-                    </button>
-                  </form>
-                </div>
-
-                {/* Active Team List */}
-                <h3 className="text-sm font-medium text-slate-800 mb-4">Active Team Members</h3>
-                <div className="space-y-3">
-                  {teamMembers.map((member, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                      <div>
-                        <p className="font-medium text-slate-800 text-sm">{member.email}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{member.access}</p>
-                      </div>
-                      <span className={`${member.role === 'Admin' || member.role === 'Owner' || member.role === 'Manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : member.role === 'Secretary' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} font-bold uppercase tracking-wider text-[10px] px-3 py-1 rounded-full border`}>{member.role}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
-                  <h2 className="text-xl font-medium text-slate-800">Recent Transactions</h2>
-                  <button className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">Export CSV</button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50/50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {recentTransactions.map((b, i) => (
-                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">{new Date(b.created_at).toLocaleDateString()}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800 whitespace-nowrap">{b.name}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">{b.package}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800 whitespace-nowrap">+${parseAmount(b.total_amount).toLocaleString()}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase px-2 py-1 rounded border border-emerald-100">Paid</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
+            {activeTab === 'Finance' && (
+              <motion.div key="Finance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full">
+                <FinanceDashboard 
+                  bookings={bookings} 
+                  studentMeta={studentMeta} 
+                  chartData={chartData} 
+                  packageEarnings={packageEarnings} 
+                  totalEarnings={totalEarnings} 
+                />
+              </motion.div>
+            )}
 
           
           {activeTab === 'History' && (
             <motion.div key="History" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-6xl mx-auto space-y-6 pb-12">
-              <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto">
-                {['Broadcasts', 'Data Extractions', 'Support Tickets'].map(cat => (
+              <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto gap-2">
+                {['All Activity', 'Students & CRM', 'Planning', 'Communications', 'System & Security'].map(cat => (
                   <button 
                     key={cat}
                     onClick={() => setHistoryCategory(cat)}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${historyCategory === cat ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${historyCategory === cat ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
                   >
                     {cat}
                   </button>
@@ -1640,84 +1697,54 @@ const OwnerDashboard = () => {
               </div>
 
               <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100">
-                  <h2 className="text-xl font-medium text-slate-800">{historyCategory} History</h2>
+                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">History & Log</h2>
+                    <p className="text-sm text-slate-500 mt-1">Audit trail of platform activities</p>
+                  </div>
+                  <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                    Export CSV
+                  </button>
                 </div>
                 
-                {historyCategory === 'Broadcasts' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Date & Time</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">User</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Action</th>
+                        <th className="px-4 py-2 text-left font-bold text-slate-600 uppercase tracking-wider text-xs">Target / Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {MOCK_AUDIT_LOGS.filter(log => historyCategory === 'All Activity' || log.category === historyCategory).map((log, index) => (
+                        <tr key={log.id} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="px-4 py-2.5 whitespace-nowrap text-slate-500">
+                            {log.date}
+                          </td>
+                          <td className="px-4 py-2.5 whitespace-nowrap">
+                            <span className="font-semibold text-slate-800">{log.user}</span>
+                            <span className="text-slate-400 ml-2 text-xs">({log.role})</span>
+                          </td>
+                          <td className="px-4 py-2.5 whitespace-nowrap text-slate-700">
+                            {log.action}
+                          </td>
+                          <td className="px-4 py-2.5 text-slate-600">
+                            {log.target}
+                          </td>
+                        </tr>
+                      ))}
+                      {MOCK_AUDIT_LOGS.filter(log => historyCategory === 'All Activity' || log.category === historyCategory).length === 0 && (
                         <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date Sent</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Audience</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <td colSpan="4" className="px-4 py-6 text-center text-slate-500">
+                            No logs found for this category.
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Today, 09:41 AM</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Winter Driving Tips</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">All Active Students (45)</td>
-                          <td className="px-6 py-4"><span className="bg-emerald-50 text-emerald-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-emerald-100">Delivered</span></td>
-                        </tr>
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Aug 01, 2026</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Schedule Update</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Specific Group (12)</td>
-                          <td className="px-6 py-4"><span className="bg-emerald-50 text-emerald-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-emerald-100">Delivered</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {historyCategory === 'Data Extractions' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date Extracted</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Requested By</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rows</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Yesterday, 14:22 PM</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">{userName}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">Finance Report (CSV)</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">124</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {historyCategory === 'Support Tickets' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50/50">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ticket ID</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50/50">
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">#TK-8902</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-800">Refund Request</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-500">John Doe</td>
-                          <td className="px-6 py-4"><span className="bg-slate-100 text-slate-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-slate-200">Resolved</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
               </div>
             </motion.div>
@@ -1725,111 +1752,8 @@ const OwnerDashboard = () => {
 
 
           {activeTab === 'Settings' && (
-            <motion.div key="Settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="max-w-3xl mx-auto space-y-6 pb-12">
-              
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <h2 className="text-xl font-medium text-slate-800 mb-6">System Settings</h2>
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Primary Admin Email</label>
-                    <input type="email" disabled value="suporttest474@gmail.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-500 cursor-not-allowed font-medium shadow-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Booking Alerts Email</label>
-                    <input type="email" defaultValue="suporttest474@gmail.com" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm" />
-                    <p className="text-xs text-slate-500 mt-2 font-medium">This is where Web3Forms sends new booking alerts.</p>
-                  </div>
-                  <div className="pt-4">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-xl transition-all shadow-md active:scale-95">
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-xl font-medium text-slate-800">Team Management & Roles</h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Assign roles to restrict access to sensitive data and segment responsibilities.</p>
-                  </div>
-                </div>
-
-                {/* Role Explanations */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Owner / Manager</span>
-                    <p className="text-xs text-slate-600 font-medium">Full access to Dashboard, Finance, Settings, and all student data. Can invite other members.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Secretary</span>
-                    <p className="text-xs text-slate-600 font-medium">Access to Bookings, Planning, and Client Communication. No access to Finance or Settings.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Instructor</span>
-                    <p className="text-xs text-slate-600 font-medium">Can only view their own assigned students and personal schedule. Cannot see overall revenue.</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded mb-2 inline-block">Accountant</span>
-                    <p className="text-xs text-slate-600 font-medium">Access strictly limited to the Finance tab and earnings exports.</p>
-                  </div>
-                </div>
-
-                {/* Add New Member Form */}
-                <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-200 mb-8">
-                  <h3 className="text-sm font-medium text-slate-800 mb-4">Invite New Member</h3>
-                  <form onSubmit={handleAddMember} className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                      <input 
-                        type="email" 
-                        required
-                        value={newMemberEmail}
-                        onChange={(e) => setNewMemberEmail(e.target.value)}
-                        placeholder="colleague@damedrive.com"
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
-                      />
-                    </div>
-                    <div className="w-full md:w-64">
-                      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Assign Role</label>
-                      <select 
-                        value={newMemberRole}
-                        onChange={(e) => setNewMemberRole(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
-                      >
-                        <option value="Manager">Manager</option>
-                        <option value="Secretary">Secretary</option>
-                        <option value="Instructor">Instructor</option>
-                        <option value="Accountant">Accountant</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition-all whitespace-nowrap">
-                      Send Invite
-                    </button>
-                  </form>
-                </div>
-
-                {/* Active Team List */}
-                <h3 className="text-sm font-medium text-slate-800 mb-4">Active Team Members</h3>
-                <div className="space-y-3">
-                  {teamMembers.map((member, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                      <div>
-                        <p className="font-medium text-slate-800 text-sm">{member.email}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{member.access}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`${member.role === 'Admin' || member.role === 'Owner' || member.role === 'Manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : member.role === 'Secretary' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} font-bold uppercase tracking-wider text-[10px] px-3 py-1 rounded-full border`}>{member.role}</span>
-                        {member.email !== 'koryobjectif@gmail.com' && (
-                          <button onClick={() => handleRemoveMember(member.id)} className="text-red-500 hover:text-red-700 text-xs font-medium">Revoke</button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-
+            <motion.div key="Settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="w-full mx-auto space-y-6 pb-12">
+              <SettingsView />
             </motion.div>
           )}
           </AnimatePresence>
@@ -1907,29 +1831,26 @@ const OwnerDashboard = () => {
               <div className="p-8">
                 {quickActionModal.action === 'Broadcast' && (
                   <div className="space-y-4">
-                    <p className="text-sm font-medium text-slate-500 mb-4">Send targeted emails to specific client segments.</p>
+                    <p className="text-sm font-medium text-slate-500 mb-4">Envoyer des rappels ciblés aux élèves.</p>
                     <div className="flex gap-3 mb-4 flex-wrap">
-                      <button className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-400">All Pending ({pending})</button>
-                      <button className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-medium hover:bg-emerald-100 transition-colors focus:ring-2 focus:ring-emerald-400">All Completed ({bookings.filter(b => b.status === 'completed').length})</button>
-                      <button className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors focus:ring-2 focus:ring-red-400">All Cancelled ({bookings.filter(b => b.status === 'cancelled').length})</button>
-                      <button className="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors focus:ring-2 focus:ring-slate-400">Search Individual...</button>
+                      <button className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-400">Tous les Pending ({pending})</button>
                     </div>
                     <div>
-                      <input type="text" placeholder="Subject (e.g., Thank you for choosing us!)" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
-                      <textarea className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" rows="5" placeholder="Compose your message here..."></textarea>
+                      <input type="text" placeholder="Sujet (ex: Rappel de paiement)" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                      <textarea className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" rows="5" placeholder="Composez votre message ici..."></textarea>
                     </div>
                     <div className="flex gap-3">
-                      <button className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors" onClick={() => setQuickActionModal({ isOpen: false, action: null })}>Cancel</button>
-                      <button className="w-2/3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors" onClick={() => { alert('Emails sent successfully!'); setQuickActionModal({ isOpen: false, action: null }); }}>Send Emails</button>
+                      <button className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors" onClick={() => setQuickActionModal({ isOpen: false, action: null })}>Annuler</button>
+                      <button className="w-2/3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors" onClick={handleSendReminders}>Envoyer Rappels</button>
                     </div>
                   </div>
                 )}
                 {quickActionModal.action === 'Export' && (
                   <div className="space-y-4 text-center">
-                    <p className="text-sm font-medium text-slate-500 mb-4">Exporting {filteredBookings.length} booking records.</p>
+                    <p className="text-sm font-medium text-slate-500 mb-4">Exportation de {filteredBookings.length} dossiers.</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <button className="py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors" onClick={() => { alert('Exporting to Excel...'); setQuickActionModal({ isOpen: false, action: null }); }}>Download Excel</button>
-                      <button className="py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-100 transition-colors" onClick={() => { alert('Exporting to CSV...'); setQuickActionModal({ isOpen: false, action: null }); }}>Download CSV</button>
+                      <button className="py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors" onClick={() => { showToast('Bientôt disponible !', 'info'); setQuickActionModal({ isOpen: false, action: null }); }}>Download Excel</button>
+                      <button className="py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-100 transition-colors" onClick={handleExportCSV}>Download CSV</button>
                     </div>
                   </div>
                 )}
